@@ -1,33 +1,35 @@
 using System.Diagnostics;
-using System.Reflection;
-using MassTransit;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using MudBlazor.Services;
 using Osmo;
-using Osmo.Common.Extensions;
-using Osmo.Common.Plugins;
-using Osmo.Common.Services;
-using Osmo.ConneX.Extensions;
-using Osmo.Data;
-using Osmo.Pages;
-using Osmo.Services;
 using Serilog;
 using Serilog.Events;
 
-
-
-var configuration = new ConfigurationBuilder()
+var baseConfiguration = new ConfigurationBuilder()
     .AddJsonFile(Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "appsettings.json"))
     .Build();
+
+// The initial "bootstrap" logger is able to log errors during start-up. It's completely replaced by the
+// logger configured in `UseSerilog()` below, once configuration and dependency-injection have both been set up successfully.
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .ReadFrom.Configuration(baseConfiguration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((context, serviceProvider, configuration) =>
+{
+    configuration.ReadFrom.Configuration(baseConfiguration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console();
+});
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-builder.Services.AddOsmoServices(configuration);
+builder.Services.AddOsmoServices(baseConfiguration);
 
 var app = builder.Build();
 
@@ -39,8 +41,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -50,11 +50,4 @@ app.MapFallbackToPage("/_Host");
 
 await app.ConfigureOsmoServices();
 
-// var plugins = app.Services.GetRequiredService<IEnumerable<IOsmoPlugin>>();
-// foreach (var plugin in plugins)
-// {
-//     app.Map
-// }
-//Router router = app.Services.GetRequiredService<Router>(); 
-
-app.Run();
+await app.RunAsync();

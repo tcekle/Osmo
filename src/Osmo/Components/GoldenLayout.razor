@@ -39,36 +39,7 @@
         _dotNetRef = DotNetObjectReference.Create(this);
         _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./goldenLayoutInterop.js");
         await _module.InvokeVoidAsync("initializeGoldenLayout", _layoutContainer, _dotNetRef);
-        
-        // foreach (var component in _components)
-        // {
-        //     await AddComponent(component, component);
-        // }
-        
-        // foreach (var route in _routes)
-        // {
-        //     await AddComponent(route, route);
-        // }
     }
-    
-    // [JSInvokable]
-    // public string RenderBlazorComponent(string componentName)
-    // {
-    //     return $"<component type=\"typeof({componentName})\" render-mode=\"ServerPrerendered\"></component>";
-    // }
-    //
-    // private async Task AddComponent(string componentName, string title)
-    // {
-    //     await _module.InvokeVoidAsync("addGoldenLayoutComponent", componentName, title);
-    // }
-
-    // [JSInvokable]
-    // public async Task NavigateToRoute(string route)
-    // {
-    //     await Task.Delay(100); // Small delay to ensure UI updates
-    //
-    //     Navigation.NavigateTo(route);
-    // }
 
     [JSInvokable]
     public string RenderBlazorRoute(string route)
@@ -81,12 +52,6 @@
         await _module.InvokeVoidAsync("addGoldenLayoutComponent", componentName, title, parameters ?? new object());
     }
     
-    public void RenderComponent(string componentName)
-    {
-        
-        Console.WriteLine($"RenderComponent: {componentName}");
-    }
-
     /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
     public void Dispose()
     {

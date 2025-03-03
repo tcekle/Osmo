@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Osmo.Common.Database.Models;
 using Osmo.ConneX.Models;
 using Osmo.ConneX.Providers;
@@ -12,16 +13,18 @@ internal class ConneXRecordInjesterService : IHostedService
 {
     private readonly IDbContextFactory<OsmoContext> _contextFactory;
     private readonly IDbContextFactory<ConneXMetricsProviderContext> _connexMetricsProviderContextFactory;
+    private readonly ILogger<ConneXRecordInjesterService> _logger;
     private Task _worker;
     private CancellationTokenSource _cancellationTokenSource;
-    // private Channel<ConneXAuditEntry> _channel = Channel.CreateUnbounded<ConneXAuditEntry>();
     private Channel<ConneXAuditEntry> _channel = Channel.CreateBounded<ConneXAuditEntry>(1000);
 
     public ConneXRecordInjesterService(IDbContextFactory<OsmoContext> contextFactory,
-        IDbContextFactory<ConneXMetricsProviderContext> connexMetricsProviderContextFactory)
+        IDbContextFactory<ConneXMetricsProviderContext> connexMetricsProviderContextFactory,
+        ILogger<ConneXRecordInjesterService> logger)
     {
         _contextFactory = contextFactory;
         _connexMetricsProviderContextFactory = connexMetricsProviderContextFactory;
+        _logger = logger;
     }
     
     /// <summary>
@@ -67,7 +70,7 @@ internal class ConneXRecordInjesterService : IHostedService
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError(e, "Error processing record");   
             }
         }
     }

@@ -25,6 +25,7 @@
     <PackageVersion Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
     <PackageVersion Include="Npgsql" Version="9.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="4.1.0" />
     <PackageVersion Include="StrawberryShake.Server" Version="15.0.3" />
     <PackageVersion Include="Serilog" Version="2.12.0" />
     <PackageVersion Include="Serilog.Extensions.Hosting" Version="7.0.0" />
