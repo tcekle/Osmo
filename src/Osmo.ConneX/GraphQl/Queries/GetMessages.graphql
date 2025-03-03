@@ -1,0 +1,16 @@
+query GetMessages($skip: Int!, $take: Int!, $topic: String!) {
+    messages(skip: $skip, take: $take, where: {
+        topic: { eq: $topic }
+    }) {
+        items {
+            messageModelId
+            topic
+            contentType
+            timestamp
+            payloadAsString
+        }
+        pageInfo {
+            hasNextPage
+        }
+    }
+}

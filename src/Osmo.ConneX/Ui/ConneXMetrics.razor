@@ -1,0 +1,28 @@
+﻿@* @using System.ComponentModel.DataAnnotations.Schema *@
+@* @inject PostgresDatabaseService _postgresDatabaseService; *@
+@* *@
+@* <h3>ConneXMetrics</h3> *@
+@* *@
+@* @code { *@
+@* *@
+@*     /// <summary> *@
+@*     /// Method invoked when the component is ready to start, having received its *@
+@*     /// initial parameters from its parent in the render tree. *@
+@*     /// Override this method if you will perform an asynchronous operation and *@
+@*     /// want the component to refresh when that operation is completed. *@
+@*     /// </summary> *@
+@*     /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns> *@
+@*     protected override Task OnInitializedAsync() *@
+@*     { *@
+@*         _postgresDatabaseService.QueryAsync<GenerationTime>() *@
+@*     } *@
+@*      *@
+@*     private class GenerationTime *@
+@*     { *@
+@*         [Column(name: "timestamp")] *@
+@*         public DateTime Timestamp { get; set; } *@
+@* *@
+@*         [Column(name: "record_generation_duration_milliseconds")] *@
+@*         public long RecordGenerationTime { get; set; } *@
+@*     } *@
+@* } *@

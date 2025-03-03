@@ -1,0 +1,168 @@
+﻿@using System.Reflection
+@using System.ComponentModel
+@* <div class="d-flex" style="gap: 20px;"> *@
+@*     <MudSelect T="string" Label="Field" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> *@
+@*         <MudSelectItem T="string" Value="@("Handler Identifier")" /> *@
+@*         <MudSelectItem T="string" Value="@("Handler Host Name")" /> *@
+@*     </MudSelect> *@
+@*     <MudSelect T="string" Label="Comparison" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> *@
+@*         <MudSelectItem T="string" Value="@("Equal to")" /> *@
+@*         <MudSelectItem T="string" Value="@("Not Equal to")" /> *@
+@*     </MudSelect> *@
+@*     <MudSelect T="DateTime" Label="Value" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> *@
+@*         <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Date"  InputType="InputType.Date"/> *@
+@*     </MudSelect> *@
+@* </div> *@
+@* *@
+@* <MudList Clickable="true"> *@
+@*     <MudListItem Text="Inbox" Icon="@Icons.Material.Filled.Inbox"> *@
+@*             <MudSelect T="DateTime" Label="Value" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> *@
+@*                 <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Date"  InputType="InputType.Date"/> *@
+@*             </MudSelect> *@
+@*     </MudListItem> *@
+@*         <MudListItem Text="Sent" Icon="@Icons.Material.Filled.Send" /> *@
+@*         <MudDivider /> *@
+@*         <MudListItem Text="Trash" /> *@
+@*         <MudListItem Text="Spam" /> *@
+@*     </MudList> *@
+
+@* <MudList> *@
+@*     @foreach (var query in _example) *@
+@*     { *@
+@*         <MudListItem Dense="true"> *@
+@*             <div class="d-flex align-center" style="gap: 20px;"> *@
+@*                 <MudSelect T="string" Dense="true" Margin="Margin.Dense" Label="Field" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="@query.Field"> *@
+@*                     $1$ <MudSelectItem T="string"  Value="@("Handler Identifier")"/> #1# *@
+@*                     $1$ <MudSelectItem T="string" Value="@("Handler Host Name")"/> #1# *@
+@*                     @foreach (var field in Fields) *@
+@*                     { *@
+@*                         <MudSelectItem T="string" Value="field"/> *@
+@*                     } *@
+@*                 </MudSelect> *@
+@*                 <MudSelect Dense="true" Margin="Margin.Dense" T="QueryComparison" ToStringFunc="converter" Label="Comparison" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> *@
+@*                     @foreach (var comparer in Enum.GetValues<QueryComparison>()) *@
+@*                     { *@
+@*                         <MudSelectItem T="QueryComparison" Value="comparer" /> *@
+@*                     } *@
+@*                 </MudSelect> *@
+@*                  *@
+@*                 @switch (query.Type) *@
+@*                 { *@
+@*                     default: *@
+@*                         <MudTextField Margin="Margin.Dense" T="string" Label="Value" Variant="Variant.Outlined" @bind-Value="@query.Value"/> *@
+@*                         break; *@
+@*                 } *@
+@*                  *@
+@*                 <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Remove" Size="Size.Small" OnClick="() => Remove(query)" /> *@
+@*                 $1$ <MudSelect T="DateTime" Label="Value" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"> #1# *@
+@*                 $1$     <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Date" InputType="InputType.Date"/> #1# *@
+@*                 $1$ </MudSelect> #1# *@
+@*             </div> *@
+@*         </MudListItem> *@
+@*     } *@
+@* </MudList> *@
+
+<MudMenu Label="Add" EndIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Filled">
+    <MudMenuItem OnClick="Callback">Condition</MudMenuItem>
+    <MudMenuItem Disabled="true">Group</MudMenuItem>
+
+</MudMenu>
+
+
+<MudButton OnClick="Execute" Color="Color.Success">Execute</MudButton>
+
+@* https://blazor.syncfusion.com/demos/query-builder/default-functionalities *@
+
+@code {
+
+    private List<QueryColumn> _example = new List<QueryColumn>
+    {
+        // new QueryColumn { Field = "HandlerIdentifier", Label = "Handler Identifier", Comparison = QueryComparison.Equal},
+        // new QueryColumn { Field = "HostName", Label = "Host Name", Comparison = QueryComparison.Equal}
+    };
+    
+    public class QueryColumn
+    {
+        public string Field { get; set; }
+        public string Label { get; set; }
+        public Type Type { get; set; }
+        public QueryComparison Comparison { get; set; } = QueryComparison.Equal;
+        public string Value { get; set; }
+    }
+
+    public enum QueryComparison
+    {
+        Equal,
+        [Description("Not Equal")]
+        NotEqual,
+        [Description("Greater Than")]
+        GreaterThan,
+        [Description("Less Than")]
+        LessThan
+    }
+    
+    [Parameter]
+    public IEnumerable<string> Fields { get; set; }
+    
+    [Parameter]
+    public Func<IEnumerable<QueryColumn>, Task> ExecuteCallback { get; set; } 
+    
+    Func<QueryComparison, string> converter = q =>
+    {
+        return GetEnumDescription(q);
+    };
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        Fields = new[]
+        {
+            "json_extract(Metadata, '$.HandlerState.HandlerIdentifier')",
+            "json_extract(Metadata, '$.HandlerState.HostName')",
+            "CurrentSession",
+            "JobName"
+        };
+        
+        _example.Add(new QueryColumn());
+    }
+
+    public static string GetEnumDescription(Enum value)
+    {
+        FieldInfo fi = value.GetType().GetField(value.ToString());
+
+        DescriptionAttribute[] attributes = fi.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+
+        if (attributes != null && attributes.Any())
+        {
+            return attributes.First().Description;
+        }
+
+        return value.ToString();
+    }
+
+    private async Task Callback()
+    {
+        _example.Add(new QueryColumn());
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Remove(QueryColumn column)
+    {
+        _example.Remove(column);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Execute(MouseEventArgs obj)
+    {
+        if (ExecuteCallback is null)
+        {
+            return;
+        }
+
+        await ExecuteCallback(_example);
+    }
+
+}

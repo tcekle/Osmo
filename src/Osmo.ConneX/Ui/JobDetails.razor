@@ -1,0 +1,119 @@
+﻿@using Osmo.Common.Database.Models
+@using Osmo.ConneX.Ui.Components
+<h3>Job Details</h3>
+
+@if (!_loading)
+{
+    <MudPaper Class="p-4">
+        <dl>
+            <dt>Job Name</dt>
+            <dd>@_job.JobName</dd>
+            
+            <dt>Job Description</dt>
+            <dd>@_job.JobDescription</dd>
+            
+            <dt>Job Id</dt>
+            <dd>@_job.GivenJobId</dd>
+            
+            <dt>Job Checksum</dt>
+            <dd>@_job.JobChecksum</dd>
+            
+            <dt>Job Settings Checksum</dt>
+            <dd>@_job.SettingChecksum</dd>
+        </dl>
+    </MudPaper>
+    
+    <h3 class="mt-4">Overall Job Statistics</h3>
+    <MudPaper Class="p-4">
+        <div class="container ml-0">
+            <div class="row">
+                <div class="col-3">
+                    <MudText Typo="Typo.h4">@_jobStats.total_jobs</MudText>
+                    <MudText Typo="Typo.subtitle2">Total run count</MudText>
+                </div>
+                <div class="col-3">
+                    <MudText Typo="Typo.h4">@_jobStats.total_success</MudText>
+                    <MudText Typo="Typo.subtitle2">Total successful runs</MudText>
+                </div>
+                <div class="col-3">
+                    <MudText Typo="Typo.h4">@_jobStats.total_failures</MudText>
+                    <MudText Typo="Typo.subtitle2">Total failure runs</MudText>
+                </div>
+                <div class="col-3">
+                    @if (_jobStats.total_failures == 0)
+                    {
+                        <MudText Typo="Typo.h4">0.0%</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h4">@Math.Round((double)_jobStats.total_success * 100 / _jobStats.total_jobs, 2)%</MudText>
+                    }
+                    
+                    <MudText Typo="Typo.subtitle2">Total success rate</MudText>
+                </div>
+            </div>
+        </div>
+    </MudPaper>
+                    
+    <h3 class="mt-4">Historical Job Performance</h3>
+    
+    <MudPaper Class="p-4">
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            <MudIconButton StartIcon="@Icons.Material.Filled.CalendarToday">1D</MudIconButton>
+            <MudIconButton StartIcon="@Icons.Material.Filled.CalendarViewWeek">1W</MudIconButton>
+            <MudIconButton StartIcon="@Icons.Material.Filled.CalendarMonth">1M</MudIconButton>
+            <MudIconButton StartIcon="@Icons.Material.Filled.CalendarMonth">1Y</MudIconButton>
+            <MudIconButton StartIcon="@Icons.Material.Filled.CalendarMonth">5Y</MudIconButton>
+        </MudButtonGroup>
+        
+        <div class="container ml-0">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="mt-4">Programming results</h4>
+                    <MudChart ChartType="ChartType.Pie"
+                              InputData="@_programmingResultCounts.Select(d => (double)d.occurrences).ToArray()"
+                              InputLabels="@_programmingResultCounts.Select(d => $"{d.code} - {d.code_name}").ToArray()"
+                              Width="300px"
+                              Height="300px"/>
+
+                    <MudExpansionPanels>
+                        <MudExpansionPanel Text="Data">
+                            <MudTable Items="@_programmingResultCounts" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+                                <HeaderContent>
+                                    <MudTh>Code</MudTh>
+                                    <MudTh>Code Name</MudTh>
+                                    <MudTh>Occurrences</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Code">@context.code</MudTd>
+                                    <MudTd DataLabel="Code Name">@context.code_name</MudTd>
+                                    <MudTd DataLabel="Occurrences">@context.occurrences</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                </div>
+                <div class="col-12">
+                    <h4 class="mt-4">Programming times</h4>
+                    <TimeSeries ChartTitle="Average Programming Duration"
+                                Trace="_programmingTimeTrace"
+                                Class="my-2"/>
+                    <TimeSeries ChartTitle="Average Verify Duration"
+                                Trace="_verifyTimeTrace"
+                                Class="my-2"/>
+                    <TimeSeries ChartTitle="Average Blank Check Duration"
+                                Trace="_blankCheckTimeTrace"
+                                Class="my-2"/>
+                    <TimeSeries ChartTitle="Average Erase Duration"
+                                Trace="_eraseTimeTrace"
+                                Class="my-2"/>
+                    <TimeSeries ChartTitle="Average Overhead Duration"
+                                Trace="_overheadTimeTrace"
+                                Class="my-2"/>
+                </div>
+            </div>
+        </div>
+        
+    </MudPaper>
+    
+}

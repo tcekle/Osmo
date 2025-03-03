@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" />
+      <PackageReference Include="Dapper.SqlBuilder" />
+      <PackageReference Include="MassTransit.Abstractions" />
+      <PackageReference Include="Microsoft.Data.Sqlite" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+      <PackageReference Include="Microsoft.AspNetCore.Components" />
+      <PackageReference Include="MQTTnet" />
+      <PackageReference Include="MQTTnet.Extensions.ManagedClient" />
+      <PackageReference Include="Npgsql" />
+      <PackageReference Include="StrawberryShake.Server" />
+      <PackageReference Include="MudBlazor" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Osmo.Common\Osmo.Common.csproj" />
+      <ProjectReference Include="..\Osmo.Database\Osmo.Database.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <GraphQL Update="GraphQl\Queries\GetSystems.graphql">
+        <Generator>MSBuild:GenerateGraphQLCode</Generator>
+      </GraphQL>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore.Components.Server">
+        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.13\Microsoft.AspNetCore.Components.Server.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.AspNetCore.Http.Abstractions">
+        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.13\Microsoft.AspNetCore.Http.Abstractions.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

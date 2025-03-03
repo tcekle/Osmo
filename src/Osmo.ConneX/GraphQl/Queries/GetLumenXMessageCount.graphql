@@ -1,0 +1,9 @@
+query GetLumenXMessageCount {
+    messages (
+        where: {
+            topic: { eq: "connex/programmer/lumenx/legacy/programmingcomplete" }
+        }
+    ){
+        totalCount
+    }
+}

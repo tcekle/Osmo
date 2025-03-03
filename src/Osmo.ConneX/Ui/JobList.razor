@@ -1,0 +1,55 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Osmo.Common.Database.Models
+@using Osmo.Common.Services
+@using Osmo.Database
+
+@inject IDbContextFactory<OsmoContext> _osmoContextFactory
+@inject GoldenLayoutService _goldenLayoutService
+
+<h3>Job List</h3>
+
+<MudTable ServerData="ServerReload"
+          T="Job"
+          Hover
+          Dense="true"
+          RowClass="cursor-pointer"
+          OnRowClick="RowClickEvent">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Identifier</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Description</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Identifier">@context.GivenJobId</MudTd>
+        <MudTd DataLabel="Name">@context.JobName</MudTd>
+        <MudTd DataLabel="Description">@context.JobDescription</MudTd>
+    </RowTemplate>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager/>
+    </PagerContent>
+</MudTable>
+
+@code {
+    private async Task<TableData<Job>> ServerReload(TableState state, CancellationToken token)
+    {
+        await using var osmodb = await _osmoContextFactory.CreateDbContextAsync(token);
+        
+        var results = osmodb.Jobs
+            .OrderBy(d => d.JobName)
+            .Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        
+        int totalItems = await osmodb.Jobs.CountAsync(token);
+        
+        return new TableData<Job> { TotalItems = totalItems, Items = results};
+    }
+    
+    private async Task RowClickEvent(TableRowClickEventArgs<Job> tableRowClickEventArgs)
+    {
+        await _goldenLayoutService.AddRoute("connex-job-details", tableRowClickEventArgs.Item.JobName , new JobDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
+    }
+    
+    private record JobDetailsParameters(string JobId);
+}

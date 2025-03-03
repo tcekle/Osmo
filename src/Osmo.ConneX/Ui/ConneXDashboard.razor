@@ -1,0 +1,279 @@
+﻿@page "/connex"
+@using Osmo.ConneX.GraphQl
+
+@inject IConneXClient _connexGraphql
+@* @inject ConneXMqttService _connexMqttService *@
+@inject IJSRuntime _jsRuntime
+
+<MudText Typo="Typo.h2">ConneX Dashboard</MudText>
+
+
+
+<MudPaper Outlined="true" Class="p-4">
+    <MudText Typo="Typo.h3" Class="mb-4">PSV systems</MudText>
+    
+    @if (_systems is not null && _systems.Systems is not null)
+    {
+        <MudGrid>
+            @foreach (var system in _systems?.Systems)
+            {
+                <MudItem>
+                    <MudPaper Outlined="true" Elevation="10" Height="400px" Width="400px" Class="p-2">
+                        <div class="d-flex justify-content-center">
+                            <h4><a href="/connex/handler/@system.HandlerId">@system.Entity.EntityName</a></h4>
+                        </div>
+
+                        <div>
+                            <dl>
+                                <dt>Hostname</dt>
+                                <dd>@system.HostName</dd>
+
+                                <dt>IP Address</dt>
+                                <dd>@system.IpAddress</dd>
+
+                                <dt>Factory</dt>
+                                <dd>@system.MachineFactory</dd>
+                                
+                                <dt>System Type</dt>
+                                <dd>@system.HandlerType</dd>
+                                
+
+                            </dl>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+
+    }
+
+</MudPaper>
+
+<MudPaper Outlined="true" Class="p-4 mt-2">
+    <MudText Typo="Typo.h3" Class="mb-4">MQTT statistics</MudText>
+
+    <MudGrid>
+        <MudItem xs="6">
+            <MudPaper Outlined="true" Elevation="10" Height="450px" Class="p-4">
+                <h5>Message sizes</h5>
+                <dl class="m-0">
+                    <dt>Average message size</dt>
+                    <dd>@_averageMessageSize</dd>
+                </dl>
+                @* <MudChart ChartOptions="new ChartOptions { DisableLegend = true,  }"  ChartType="ChartType.Line" ChartSeries="@_messageSizes" Width="100%" Height="325px"></MudChart> *@
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Outlined="true" Elevation="10" Height="450px" Class="p-4">
+                <h5>Message topics</h5>
+                <MudChart ChartType="ChartType.Pie" LegendPosition="Position.Right" InputData="@_topicCounts" InputLabels="@_topicLabels" Width="100%" Height="325px"></MudChart>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12">
+            <MudPaper Outlined="true" Elevation="10" Height="900px" Class="p-4">
+                <h5>Test d3</h5>
+                <div id="my_pie_chart" class="d-flex justify-center" style="height: 100%; width: 100%;"></div>
+            </MudPaper>
+        </MudItem>
+        
+        
+    </MudGrid>
+    
+</MudPaper>
+
+@code{
+    private Dictionary<string, TreeItemData> _topicToTreeMap = new();
+    private IGetSystemsResult _systems;
+
+    private int _averageMessageSize;
+    // private IEnumerable<int> _messageSizes;
+
+    private List<ChartSeries> _messageSizes = new();
+
+    private double[] _topicCounts;
+    private string[] _topicLabels;
+
+    private HashSet<TreeItemData> TreeItems;// = new HashSet<TreeItemData>();
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        TreeItems = new HashSet<TreeItemData>();
+        var query = await _connexGraphql.GetSystems.ExecuteAsync();
+        _systems = query.Data;
+
+        var mqttQuery = await _connexGraphql.GetLastFiftyMqtt.ExecuteAsync();
+        var messages = mqttQuery.Data.Messages.Items;
+
+        // _messageSizes.Add(new ChartSeries
+        // {
+        //     Name = "Message Sizes", 
+        //     Data = _connexMqttService.LatestMessages.Select(m => (double)m.PayloadSegment.Count).ToArray()
+        // });
+        _messageSizes.Add(new ChartSeries
+        {
+            Name = "Message Sizes", 
+            Data = messages.Select(m => (double)m.Payload.Count).ToArray()
+        });
+        
+        // _averageMessageSize = (int)_connexMqttService.LatestMessages.Select(x => x.PayloadSegment.Count).Average();
+        _averageMessageSize = (int)messages.Select(x => x.Payload.Count).Average();
+
+        // var messageCounts = _connexMqttService.LatestMessages
+        //     .GroupBy(t => t.Topic)
+        //     .ToDictionary(grp => grp.Key, grp => grp.Count())
+        //     .OrderByDescending(grp => grp.Value);
+        var messageCounts = messages.GroupBy(t => t.Topic)
+            .ToDictionary(grp => grp.Key, grp => grp.Count())
+            .OrderByDescending(grp => grp.Value)
+            .Take(5);
+
+        _topicCounts = messageCounts.Select(m => (double)m.Value).ToArray();
+        _topicLabels = messageCounts.Select(m =>
+        {
+            var label = m.Key.AsSpan();
+            return label.Length > 25 ? $"{label.Slice(0, 25).ToString()} ..." : label.ToString();
+        }).ToArray();
+
+        
+    }
+
+    /// <summary>
+    /// Method invoked after each time the component has been rendered. Note that the component does
+    /// not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />, because
+    /// that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+        
+        var mqttQuery = await _connexGraphql.GetLastFiftyMqtt.ExecuteAsync();
+        var messages = mqttQuery.Data.Messages.Items;
+        
+        foreach (var topic in messages.Select(m => m.Topic))
+        {
+            AddTopicToTree(topic);
+        }
+        
+        var jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Osmo.ConneX/script/d3PieChart.js");
+        // await jsModule.InvokeVoidAsync("initialize");
+        var children = new List<object>();
+        foreach (var child in TreeItems)
+        {
+            children.Add(CreateHierarchical(child));
+        }
+
+        var data = new
+        {
+            name = string.Empty,
+            children = children
+        };
+        
+        await jsModule.InvokeVoidAsync("createSunBurst", data);
+    }
+
+    private object CreateHierarchical(TreeItemData treeItemData)
+    {
+        
+        if (treeItemData.HasChild)
+        {
+            List<object> children = new List<object>();
+            
+            foreach (var child in treeItemData.TreeItems)
+            {
+                children.Add(CreateHierarchical(child));
+            }
+            
+            return new
+            {
+                name = treeItemData.DisplayText,
+                children = children
+            };
+        }
+
+        return new
+        {
+            name = treeItemData.DisplayText,
+            value = treeItemData.ReceivedCount
+        };
+    }
+    
+    private void AddTopicToTree(string topic)
+    {
+        if (_topicToTreeMap.TryGetValue(topic, out TreeItemData treeItem))
+        {
+            treeItem.ReceivedCount++; // TODO move this to the DB?
+            return;
+        }
+
+        string[] levels = topic.Split("/");
+
+        TreeItemData treeLevel = TreeItems.FirstOrDefault(t => t.Text == levels[0]);
+
+        if (treeLevel is null)
+        {
+            treeLevel = new TreeItemData(levels[0], string.Empty);
+            TreeItems.Add(treeLevel);
+        }
+
+        foreach (string level in levels[1..])
+        {
+            var child = treeLevel.TreeItems.FirstOrDefault(t => t.Text == level);
+
+            if (child is null)
+            {
+                child = new TreeItemData(level, string.Empty);
+                treeLevel.TreeItems.Add(child);
+            }
+
+            treeLevel = child;
+        }
+
+        treeLevel.ReceivedCount++; // TODO move this to the DB?
+        treeLevel.Topic = topic;
+    }
+    
+    private class TreeItemData
+    {
+        public string DisplayText { get => string.Format("{0}{1}", Text, ReceivedCount > 0 ? $" ({ReceivedCount})" : string.Empty); }
+        public string Text { get; set; }
+
+        public string Topic { get; set; }
+
+        public string Icon { get; set; }
+
+        public bool IsExpanded { get; set; } = false;
+
+        public bool HasChild => TreeItems != null && TreeItems.Count > 0;
+
+        public int ReceivedCount { get; set; } = 0;
+
+        public HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
+
+        public TreeItemData(string text, string icon)
+        {
+            Text = text;
+            Icon = icon;
+        }
+    }
+}

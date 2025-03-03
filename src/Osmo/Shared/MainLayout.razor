@@ -1,0 +1,148 @@
+﻿@using Osmo.Common.Plugins
+@using Osmo.Common.Messages.Notification
+@using MassTransit
+@using Osmo.Common.Services
+@using Osmo.Services
+@using Osmo.Components
+@using Osmo.Components.NavigationToolbars
+@using Osmo.ConneX.Ui
+
+@inherits LayoutComponentBase
+@implements IDisposable
+
+@inject IEnumerable<IOsmoPlugin> _plugins
+@inject ISnackbar _snackbar
+@inject GlobalNotificationService _globalNotificationService
+@inject GoldenLayoutService _goldenLayoutService
+@inject MainLayoutLeftToolbarService _MainLayoutLeftToolbarService
+
+<PageTitle>Osmo</PageTitle>
+
+<MudThemeProvider IsDarkMode="@_darkMode"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<MudPopoverProvider />
+
+<MudLayout>
+    <MudAppBar Dense="true" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudMenu Label="View" Dense="true">
+            <MudMenu Label="ConneX">
+                <MudMenuItem Label="Dashboard" @onclick="@(() => _goldenLayoutService.AddRoute("connex-dashboard", "ConneX Dashboard"))" />
+                <MudMenuItem Label="Analyzer" @onclick="@(() => _goldenLayoutService.AddRoute("connex-analyzer", "ConneX Analyzer"))"  />
+                <MudMenuItem Label="Metrics" @onclick="@(() => _goldenLayoutService.AddRoute("connex-metrics", "ConneX Metrics"))"  />
+                <MudMenuItem Label="Messages" @onclick="@(() => _goldenLayoutService.AddRoute("connex-message-list", "ConneX Message List"))"  />
+            </MudMenu>
+        </MudMenu>
+        <MudSpacer />
+        <MudToggleIconButton 
+            @bind-Toggled="@_darkMode" 
+            Icon="@Icons.Material.Filled.LightMode" 
+            ToggledIcon="@Icons.Material.Filled.ModeNight"
+            Title="Light Mode"
+            ToggledTitle="Dark Mode"></MudToggleIconButton>
+    </MudAppBar>
+
+    <MudDrawer ClipMode="DrawerClipMode.Always" Open="false" Elevation="1" Variant="@DrawerVariant.Mini" >
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(ConneXNavigator)))" >ConneX</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Castle" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(OsmoNavigationToolbar)))" >Osmo</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    
+    @* <MudDrawer Variant="DrawerVariant.Persistent" Open="_drawerOpen" ClipMode="DrawerClipMode.Always"> *@
+    @*     <MudNavMenu> *@
+    @*         <MudNavLink Icon="@Icons.Material.Filled.Dashboard" Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink> *@
+    @*         @foreach (var plugin in _plugins) *@
+    @*         { *@
+    @*             @if (string.IsNullOrEmpty(plugin.PluginSlug)) *@
+    @*             { *@
+    @*                 continue; *@
+    @*             } *@
+    @* *@
+    @*             <MudNavLink Href="@plugin.PluginSlug" Match="NavLinkMatch.Prefix">@plugin.Name</MudNavLink> *@
+    @*         } *@
+    @*     </MudNavMenu> *@
+    @*     <MudSpacer /> *@
+    @*     <MudNavLink Icon="@Icons.Material.Filled.Settings" Href="#" Match="NavLinkMatch.All">Settings</MudNavLink> *@
+    @* </MudDrawer> *@
+    <MudMainContent>
+
+        @Body
+        @* <GoldenLayout @ref="_goldenLayout"/> *@
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    private bool _drawerOpen = true;
+    private bool _darkMode = true;
+    // private GoldenLayout _goldenLayout;
+    
+    void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _globalNotificationService.OnNotificationReceived += ShowNotification;
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     await _goldenLayout.AddComponent("Osmo.ConneX.Ui.ConneXDashboard", "Dashboard");
+    // }
+
+    private void ShowNotification(object sender, NotificationMessage notificationMessage)
+    {
+        _snackbar.Add(@<div>
+                          <h3>@notificationMessage.Title</h3>
+                          <p>@notificationMessage.Body</p>
+                      </div>);
+    }
+
+    public Task Consume(ConsumeContext<NotificationMessage> context)
+    {
+        if (_snackbar is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        _snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        _snackbar.Add(@<div>
+                          <h3>@context.Message.Title</h3>
+                          <p>@context.Message.Body</p>
+                      </div>);
+
+        return Task.CompletedTask;
+    }
+
+}
+@code {
+    /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+    public void Dispose()
+    {
+        _globalNotificationService.OnNotificationReceived -= ShowNotification;
+    }
+}
+
+
+@* <div class="page"> *@
+@*     <div class="sidebar"> *@
+@*         <NavMenu/> *@
+@*     </div> *@
+@* *@
+@*     <main> *@
+@*         <div class="top-row px-4"> *@
+@*             <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a> *@
+@*         </div> *@
+@* *@
+@*         <article class="content px-4"> *@
+@*             @Body *@
+@*         </article> *@
+@*     </main> *@
+@* </div> *@

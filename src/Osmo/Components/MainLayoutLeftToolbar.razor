@@ -1,0 +1,37 @@
+﻿@using Osmo.ConneX.Ui
+@using Osmo.Services
+
+@inject MainLayoutLeftToolbarService _MainLayoutLeftToolbarService
+
+@if (_currentComponent != null)
+{
+    <DynamicComponent Type="_currentComponent" />
+}
+else
+{
+    <em>Please select a value from the left panel</em>
+}
+
+@code {
+    private Type _currentComponent = null;
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        _MainLayoutLeftToolbarService.OnSwitchToolbar += SwitchComponent;
+        // _currentComponent = typeof(ConneXNavigator);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SwitchComponent(Type component)
+    {
+        _currentComponent = component;
+        await InvokeAsync(StateHasChanged);
+    }
+}

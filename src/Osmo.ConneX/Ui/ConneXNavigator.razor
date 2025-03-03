@@ -1,0 +1,54 @@
+﻿@using Osmo.Common.Services
+@using Osmo.ConneX.GraphQl
+
+@inject IConneXClient _connexGraphql
+@inject GoldenLayoutService _goldenLayoutService
+
+<div class="container pl-0">
+    <div class="row">
+        <h3>ConneX</h3>
+    </div>
+    <div class="row">
+        <MudItem xs="12">
+            <MudTreeView Hover T="string" @bind-SelectedValue="SelectedValue" Dense="true" SelectionMode="SelectionMode.SingleSelection">
+                <MudTreeViewItem Text="Handler systems">
+                    @if(_systems is not null && _systems.Systems is not null)
+                    {
+                        @foreach (var system in _systems?.Systems)
+                        {
+                            <MudTreeViewItem Text="@system.Entity.EntityName" 
+                                             OnDoubleClick="@(() => _goldenLayoutService.AddRoute("connex-handler", system.Entity.EntityName, new HandlerParameters(system.HandlerId)))"/>
+                        }
+                    }
+                </MudTreeViewItem>
+                <MudTreeViewItem Value='"Components"'>
+                    <MudTreeViewItem Text="Dashboard" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("connex-dashboard", "ConneX Dashboard"))"/>
+                    <MudTreeViewItem Text="Record Ingester" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("connex-record-ingester", "ConneX Record Ingester"))"/>
+                    <MudTreeViewItem Text="Device List" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("connex-device-list", "Device List"))"/>
+                    <MudTreeViewItem Text="Job List" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("connex-job-list", "Job List"))"/>
+                </MudTreeViewItem>
+            </MudTreeView>
+        </MudItem>
+    </div>
+</div>
+
+@code {
+    public string SelectedValue = "test";
+    private IGetSystemsResult _systems;
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        var query = await _connexGraphql.GetSystems.ExecuteAsync();
+        _systems = query.Data;
+    }
+
+    private record HandlerParameters(int Id);
+
+}

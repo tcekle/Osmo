@@ -1,0 +1,475 @@
+﻿@page "/ConneXAnalyzer"
+@using Npgsql
+@using Dapper
+@using System.Text
+@using System.Text.Json.Serialization
+@using Microsoft.Data.Sqlite
+
+@inject IJSRuntime _jsRuntime
+
+<h3>ConneXAnalyzer</h3>
+
+@* <div id="visualization" style="font-family: sans-serif; background: white; display: none;"></div> *@
+@* *@
+@* <div id="uplotExample" style="background: white; color: black;"></div> *@
+@* *@
+@* <MudAutocomplete T="string"  *@
+@*                  SearchFunc="@SearchFunc" *@
+@*                  Dense="true"  *@
+@*                  @bind-Value="SearchText"/> *@
+@* *@
+@* <MudChipSet AllClosable="true"> *@
+@* *@
+@*     @foreach (var item in _items) *@
+@*     { *@
+@*         <MudChip Text="@item"></MudChip> *@
+@*     } *@
+@*      *@
+@* *@
+@* </MudChipSet> *@
+
+
+
+@* <MudButton OnClick="@AddItem" Variant="Variant.Filled">Add Item</MudButton> *@
+@* *@
+@* <MudChipSet> *@
+@*     @foreach(var item in _items) *@
+@*     { *@
+@*         <MudChip OnClose="(() => RemoveItem(item))">@item</MudChip> *@
+@*     } *@
+@* </MudChipSet> *@
+
+<MudText Typo="Typo.h5">Events</MudText>
+<MudText Typo="Typo.body1" Class="mb-5">ConneX related events</MudText>
+
+<MudPaper Outlined="true" Class="pa-4">
+    <div id="plotlyExample" style="background: white; height: 1000px;"></div>
+</MudPaper>
+
+<MudText Typo="Typo.h5" Class="my-4">Query</MudText>
+<MudText Typo="Typo.body1" Class="mb-5">Build a query here to refine the results.</MudText>
+
+<MudPaper Class="pa-4 my-4" Outlined="true">
+    <QueryBuilder ExecuteCallback="QueryExecuteCallback" />
+</MudPaper>
+
+
+
+<style>
+    .vis-item.red {
+      background-color: red;
+      border-color: darkred;
+      color: white;
+      font-family: monospace;
+    }
+    
+    		.uplot {
+    			display: inline-block;
+    			vertical-align: top;
+    			width: min-content;
+    		}
+    
+    		.u-over {
+    			box-shadow: 0px 0px 0px 0.5px #ccc;
+    		}
+    
+    		.u-legend {
+    			text-align: left;
+    			padding-left: 50px;
+    		}
+    
+    		.u-inline tr {
+    			margin-right: 8px;
+    		}
+    
+    		.u-label {
+    			font-size: 12px;
+    		}
+    
+    		.u-tooltip {
+    			font-size: 10pt;
+    			color: black;
+    			position: absolute;
+    			background: #fff;
+    			display: none;
+    			border: 2px solid black;
+    			padding: 4px;
+    			pointer-events: none;
+    			z-index: 100;
+    			white-space: pre;
+    			font-family: monospace;
+    		}
+</style>
+
+@code {
+    private List<Data> _events = new();
+    private Dictionary<string, Group> _groups = new();
+    private List<UplotData> _uplotData = new();
+
+    private string SearchText
+    {
+        get => string.Empty;
+        set {
+            _items.Add(value);
+        }
+    }
+    
+    private List<string> _items = new List<string>();
+    private IEnumerable<string> _searchValues = Enumerable.Empty<string>();
+    
+    Task<IEnumerable<string>> SearchFunc(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return Task.FromResult(_searchValues);
+        }
+        
+    // Here you can perform your search logic to return possible items. This is just a placeholder.
+        var result = _searchValues.Where(s => s.StartsWith(text));
+        return Task.FromResult(result);
+    }
+
+    // void AddItem()
+    // {
+    //     if (!string.IsNullOrWhiteSpace(_searchText))
+    //     {
+    //         _items.Add(_searchText);
+    //         _searchText = string.Empty;
+    //     }
+    // }
+    //
+    // void RemoveItem(string item)
+    // {
+    //     _items.Remove(item);
+    // }
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        // var con = new NpgsqlConnection(
+        //     connectionString: "Server=localhost;Port=5432;User Id=dataio;Password=dataio;Database=connex_messages;");
+        // con.Open();
+        // using var cmd = new NpgsqlCommand();
+        // cmd.Connection = con;
+        //
+        // var test = await con.QueryAsync<Message>(@"SELECT * FROM ""Entries"" WHERE ""Timestamp"" > now() - INTERVAL '3 year';");
+        //
+        // foreach (var entry in test)
+        // {
+        //     try
+        //     {
+        //         var record = System.Text.Json.JsonSerializer.Deserialize<RootObject>(Encoding.UTF8.GetString(entry.Payload));
+        //
+        //         foreach (var deviceRecord in record.AuditData.Records.AuditRecord)
+        //         {
+        //             if (deviceRecord.PartDetail.Result.CodeName != "Success")
+        //             {
+        //                 _events.Add(new Data
+        //                 {
+        //                     Id = _events.Count + 1,
+        //                     Content = "Device failure",
+        //                     Start = DateTime.Parse(deviceRecord.TimeStamp),
+        //                     Type = "point"
+        //                 });
+        //             }
+        //         }
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         Console.WriteLine(e);
+        //     }
+        // }
+    }
+
+    /// <summary>
+    /// Method invoked after each time the component has been rendered. Note that the component does
+    /// not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />, because
+    /// that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    //     protected override async Task OnAfterRenderAsync(bool firstRender)
+    //     {
+    //         if (!firstRender)
+    //         {
+    //             return;
+    //         }
+    //         
+    //         Dictionary<long, int> timeMap = new();
+    //         
+    //         var con = new NpgsqlConnection(
+    //             connectionString: "Server=localhost;Port=5432;User Id=dataio;Password=dataio;Database=connex_messages;");
+    //         con.Open();
+    //         using var cmd = new NpgsqlCommand();
+    //         cmd.Connection = con;
+    //
+    //         var test = await con.QueryAsync<Message>(@"SELECT * FROM ""Entries"" WHERE ""Timestamp"" > now() - INTERVAL '1 year' AND ""Topic"" LIKE 'ah700/operations/devicecomplete%'");
+    //
+    //         GetAhFailures(test);
+    // //         foreach (var entry in test)
+    // //         {
+    // //             if (!entry.Topic.EndsWith("programmingcomplete"))
+    // //             {
+    // //                 continue;
+    // //             }
+    // //             
+    // //             try
+    // //             {
+    // //                 var record = System.Text.Json.JsonSerializer.Deserialize<RootObject>(Encoding.UTF8.GetString(entry.Payload));
+    // //
+    // //                 foreach (var deviceRecord in record.AuditData.Records.AuditRecord)
+    // //                 {
+    // //                     if (deviceRecord.PartDetail.Result.CodeName != "Success")
+    // //                     {
+    // //                         long timestamp = DateTimeOffset.Parse(deviceRecord.TimeStamp).ToUnixTimeSeconds();
+    // //                         if (!timeMap.ContainsKey(timestamp))
+    // //                         {
+    // //                             timeMap[timestamp] = 1;
+    // //                         }
+    // //                         else
+    // //                         {
+    // //                             timeMap[timestamp] += 1;
+    // //                         }
+    // //                         
+    // //                         
+    // //                         _uplotData.Add(new UplotData
+    // //                         {
+    // //                             Time = timestamp,
+    // //                             Value = timeMap[timestamp]
+    // //                         });
+    // //                         
+    // // //                         if (!_groups.ContainsKey(deviceRecord.HandlerInfo.MachineName))
+    // // //                         {
+    // // //                             _groups.Add(
+    // // //                                 deviceRecord.HandlerInfo.MachineName, new Group
+    // // //                                 {
+    // // //                                     Id = _groups.Count + 1,
+    // // //                                     Content = deviceRecord.HandlerInfo.MachineName
+    // // //                                 });
+    // // //                         }
+    // // //
+    // // //                         string title = $@"
+    // // // <span>Device Failure</span>
+    // // // <dl>
+    // // //   <dt>Socket</dt>
+    // // //   <dd>{deviceRecord.PartDetail.Result.SocketIndex}</dd>
+    // // //   <dt>Error Message</dt>
+    // // //   <dd>{deviceRecord.PartDetail.Result.ErrorMessage}</dd>
+    // // // </dl>
+    // // // ";
+    // // //                         
+    // // //                         _events.Add(new Data
+    // // //                         {
+    // // //                             Id = _events.Count + 1,
+    // // //                             Content = "",
+    // // //                             Title = title,
+    // // //                             Start = DateTime.Parse(deviceRecord.TimeStamp),
+    // // //                             Group = _groups[deviceRecord.HandlerInfo.MachineName].Id,
+    // // //                             ClassName = "red"
+    // // //                         });
+    // //                     }
+    // //                 }
+    // //             }
+    // //             catch (Exception e)
+    // //             {
+    // //                 Console.WriteLine(e);
+    // //             }
+    // //         }
+    //
+    //         _uplotData = _uplotData.OrderBy(x => x.Time).ToList();
+    //          var jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Osmo.ConneX/script/d3PieChart.js");
+    // //         await jsModule.InvokeVoidAsync("createTimeline", "visualization", _events, _groups.Values.ToArray());
+    //         await jsModule.InvokeVoidAsync("uplotExample", 
+    //             _uplotData.Select(x => x.Time),
+    //             _uplotData.Select(x => x.Value));
+    //     }
+    
+    /// <summary>
+    /// Method invoked after each time the component has been rendered. Note that the component does
+    /// not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />, because
+    /// that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await UpdateData();
+
+    //     var sqliteConnection = new SqliteConnection($@"Data Source=C:\Temp\TestConneXReport.db");
+    //     await sqliteConnection.OpenAsync();
+    //     
+    //     var data = await sqliteConnection.QueryAsync<ReportEvent>(@"SELECT Type,Title,Message,Timestamp FROM Events");
+    //     var frequencyData = await sqliteConnection.QueryAsync<FrequencyData>(@"SELECT strftime('%Y-%m-%d %H:00:00.00000', Timestamp) AS time, COUNT(*) AS Value FROM Events GROUP BY time");
+    //     _searchValues = await sqliteConnection.QueryAsync<string>(@"SELECT DISTINCT(Type) FROM Events");
+    // // await foreach (var evt in sqliteConnection.QueryUnbufferedAsync<ReportEvent>(@"SELECT * FROM Events"))
+    // // {
+    // //     
+    // // }
+    //     
+    //     var jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Osmo.ConneX/script/d3PieChart.js");
+    //     // await jsModule.InvokeVoidAsync("uplotExample", data.GroupBy(x => x.Type));
+    //     await jsModule.InvokeVoidAsync("plotlyExample", data.GroupBy(x => x.Type), frequencyData);
+    }
+
+    private void GetAhFailures(IEnumerable<Message> messages)
+    {
+        
+        Dictionary<long, int> timeMap = new();
+        
+        foreach (var message in messages)
+        {
+            try
+            {
+                long timestamp = new DateTimeOffset(message.Timestamp).ToUnixTimeSeconds();
+                if (!timeMap.ContainsKey(timestamp))
+                {
+                    timeMap[timestamp] = 1;
+                }
+                else
+                {
+                    timeMap[timestamp] += 1;
+                }
+                
+                var deviceResult = System.Text.Json.JsonSerializer.Deserialize<AhDeviceComplete>(Encoding.UTF8.GetString(message.Payload));
+                if (deviceResult.Status != "Pass")
+                {
+                    _uplotData.Add(new UplotData
+                    {
+                        Time = timestamp,
+                        Value = timeMap[timestamp]
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+    }
+
+    public class AhDeviceComplete
+    {
+        public int DeviceID { get; set; }
+        public string Status { get; set; }
+        public int ErrorCode { get; set; }
+    }
+
+    public class ReportEvent
+    {
+        public string Type { get; set; }
+        public string Title { get; set; }
+        public string Message { get; set; }
+        public string RawData { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class Message
+    {
+        public Guid MessageModelId { get; set; }
+        public string Topic { get; set; }
+        public string ContentType { get; set; }
+        public byte[] Payload { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class Data
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public DateTime Start { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public DateTime End { get; set; }
+        public string Type { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public int Group { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public string ClassName { get; set; }
+    }
+
+    public class Group
+    {
+        public int Id { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class UplotData
+    {
+        public long Time { get; set; }
+        public long Value { get; set; }
+    }
+    
+    public class FrequencyData
+    {
+        public DateTime Time { get; set; }
+        public long Value { get; set; }
+    }
+
+
+    private async Task QueryExecuteCallback(IEnumerable<QueryBuilder.QueryColumn> queries)
+    {
+        await UpdateData(queries);
+    }
+
+    private async Task UpdateData(IEnumerable<QueryBuilder.QueryColumn> queries = null)
+    {
+        var sqliteConnection = new SqliteConnection($@"Data Source=C:\Temp\TestConneXReport.db");
+        await sqliteConnection.OpenAsync();
+
+        var builder = new SqlBuilder();
+        
+        if (queries != null)
+        {
+            foreach (var query in queries)
+            {
+                builder = builder.Where($"{query.Field} = @value", new { value = query.Value });
+            }
+        }
+        
+        var dataQuery = builder.AddTemplate("SELECT Type,Title,Message,Timestamp,Metadata FROM Events /**where**/");
+        
+        // var data = await sqliteConnection.QueryAsync<ReportEvent>(@"SELECT Type,Title,Message,Timestamp FROM Events");
+        var data = await sqliteConnection.QueryAsync<ReportEvent>(dataQuery.RawSql, dataQuery.Parameters);
+        var frequencyData = await sqliteConnection.QueryAsync<FrequencyData>(@"SELECT strftime('%Y-%m-%d %H:00:00.00000', Timestamp) AS time, COUNT(*) AS Value FROM Events GROUP BY time");
+        _searchValues = await sqliteConnection.QueryAsync<string>(@"SELECT DISTINCT(Type) FROM Events");
+    // await foreach (var evt in sqliteConnection.QueryUnbufferedAsync<ReportEvent>(@"SELECT * FROM Events"))
+    // {
+    //     
+    // }
+        
+        var jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Osmo.ConneX/script/d3PieChart.js");
+    // await jsModule.InvokeVoidAsync("uplotExample", data.GroupBy(x => x.Type));
+        await jsModule.InvokeVoidAsync("plotlyExample", data.GroupBy(x => x.Type), frequencyData);
+    }
+
+}
+

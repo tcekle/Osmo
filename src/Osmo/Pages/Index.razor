@@ -1,0 +1,116 @@
+﻿@page "/"
+@page "/{pluginSlug}"
+@using Osmo.Common.Plugins
+@using Osmo.Components
+
+
+@inject IEnumerable<IOsmoPlugin> _plugins
+@inject IJSRuntime _jSRuntime
+
+<PageTitle>Index</PageTitle>
+
+@* <GoldenLayout/> *@
+
+@* <div id="golden-layout-container" style="width: 100vw; height: 100vh;"></div> *@
+
+@* <MudSplitter Height="400px" *@
+@*              @bind-Dimension="Dimension"> *@
+<MudSplitter Height="90vh"
+             DimensionChanged="Callback"
+             @ref="_mudSplitter">
+    <StartContent>
+        <MainLayoutLeftToolbar />
+    </StartContent>
+
+    <EndContent>
+        <GoldenLayout @ref="_goldenLayout" />
+    </EndContent>
+</MudSplitter>
+
+@* *@
+@* <MudGrid> *@
+@*     <MudItem xs="12" sm="8"> *@
+@* *@
+@*     </MudItem> *@
+@* </MudGrid> *@
+
+
+
+
+@* <DynamicComponent ></DynamicComponent> *@
+
+@code {
+    private Type _pluginUiType;
+    private GoldenLayout _goldenLayout;
+    private MudSplitter _mudSplitter;
+    private double _dimension = 15;
+    
+    public double Dimension
+    {
+        get => _dimension;
+        set
+        {
+            if (_dimension != value && value > 10)
+            {
+                _dimension = value;
+                _ = _goldenLayout.UpdateSize();
+                StateHasChanged();
+            }
+        }
+    }
+    
+    [Parameter]
+    public string PluginSlug { get; set; }
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        // var plugin = _plugins.SingleOrDefault(p => p.)
+    }
+
+    /// <summary>
+    /// Method invoked after each time the component has been rendered interactively and the UI has finished
+    /// updating (for example, after elements have been added to the browser DOM). Any <see cref="T:Microsoft.AspNetCore.Components.ElementReference" />
+    /// fields will be populated by the time this runs.
+    /// This method is not invoked during prerendering or server-side rendering, because those processes
+    /// are not attached to any live browser DOM and are already complete before the DOM is updated.
+    /// Note that the component does not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />,
+    /// because that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+        
+        _mudSplitter.Dimension = 15;
+        await InvokeAsync(StateHasChanged);
+        // await _goldenLayout.UpdateSize();
+        // if (firstRender)
+        // {
+        //     var module = await _jSRuntime.InvokeAsync<IJSObjectReference>("import", "./goldenLayoutInterop.js");
+        //     await module.InvokeVoidAsync("initializeMainLayout");
+        // }
+    }
+
+    private async Task Callback(double percentage)
+    {
+        await _goldenLayout.UpdateSize();
+    }
+
+}

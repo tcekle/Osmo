@@ -1,0 +1,156 @@
+﻿@using Osmo.ConneX.GraphQl
+@using Osmo.ConneX.Models
+@using Osmo.ConneX.Services
+@using System.Text.Json
+
+@inject IConneXClient _connexGraphql
+@inject ConneXRecordInjesterService _recordInjesterService
+
+<h3>Record Ingester</h3>
+
+<MudPaper Style="width: 800px">
+    <MudStepper Vertical >
+        <ChildContent>
+            <MudStep Title="Select import type">
+                <MudRadioGroup @bind-Value="_importType">
+                    <MudRadio Value="@ImportType.ProgrammerRecords" Color="Color.Primary" Size="Size.Small">Programmer records</MudRadio>
+                </MudRadioGroup>
+            </MudStep>
+            <MudStep Title="Select programmer type">
+                <MudRadioGroup @bind-Value="_programmerType">
+                    <MudRadio Value="@ProgrammerType.LumenX" Color="Color.Primary" Size="Size.Small">LumenX</MudRadio>
+                </MudRadioGroup>
+            </MudStep>
+        </ChildContent>
+        <CompletedContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartImport">Start importing</MudButton>
+        </CompletedContent>
+    </MudStepper>
+</MudPaper>
+
+@if (_importInProgress)
+{
+    <MudPaper Style="width: 800px">
+        <h4>Importing records @_recordsImported / @_recordCount</h4>
+        <MudProgressLinear Color="Color.Primary" Value="_recordsImported" Min="0" Max="_recordCount" Class="my-7"/>
+    </MudPaper>
+}
+
+@code {
+    enum ImportType
+    {
+        ProgrammerRecords
+    }
+    
+    enum ProgrammerType
+    {
+        LumenX
+    }
+    
+    private ImportType _importType { get; set; }
+    private ProgrammerType _programmerType { get; set; }
+
+    private bool _importInProgress = false;
+
+    private int _recordsImported = 0;
+    private int _recordCount = 0;
+
+    private async Task StartImport()
+    {
+        var messageCount = await _connexGraphql.GetLumenXMessageCount.ExecuteAsync();
+        _recordCount = messageCount.Data.Messages.TotalCount;
+        
+        _importInProgress = true;
+
+        await IngestRecords();
+
+        // for (int i = 0; i < _recordCount; i++)
+        // {
+        //     await Task.Delay(100);
+        //     _recordsImported++;
+        //     await InvokeAsync(StateHasChanged);
+        // }
+    }
+    
+    private async Task IngestRecords()
+    {
+        int skip = 0;
+        int take = 50;
+        bool hasNextPage = true;
+        string topicFilter = "connex/programmer/lumenx/legacy/programmingcomplete";
+
+        JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        
+        while (hasNextPage)
+        {
+            await Task.Delay(50);
+            var pageResult = await _connexGraphql.GetMessages.ExecuteAsync(skip, take, topicFilter);
+
+            if (pageResult.Data?.Messages is null)
+            {
+                await Task.Delay(50);
+                continue;
+            }
+
+            if (pageResult.Data.Messages.Items != null)
+            {
+                foreach (var message in pageResult.Data.Messages.Items)
+                {
+                    if (message?.PayloadAsString is null)
+                    {
+                        continue;
+                    }
+
+                    List<ConneXAuditEntry> entries;
+                    try
+                    {
+                        entries = DeserializePayload(message.PayloadAsString);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        Console.WriteLine($"Failed to deserialize payload {message.PayloadAsString}");
+                        continue;
+                    }
+                    
+
+                    foreach (var entry in entries)
+                    {
+                        await _recordInjesterService.AddRecord(entry);
+                    }
+                    
+                    _recordsImported++;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+            
+            hasNextPage = pageResult.Data?.Messages?.PageInfo?.HasNextPage ?? false;
+            skip += take;
+        }
+        
+        // var messages = await _connexGraphql.GetLumenXMessages.ExecuteAsync();
+    }
+    
+    private List<ConneXAuditEntry> DeserializePayload(string payload)
+    {
+        JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        
+        try
+        {
+            return JsonSerializer.Deserialize<List<ConneXAuditEntry>>(payload, jsonSerializerOptions);
+        }
+        catch (Exception)
+        {
+            ;
+        }
+
+        return [JsonSerializer.Deserialize<ConneXAuditEntry>(payload, jsonSerializerOptions)];
+    }
+
+}

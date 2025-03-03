@@ -1,0 +1,32 @@
+﻿<h3>Device Details</h3>
+
+@if (_device != null)
+{
+    <MudPaper Class="p-4">
+        <dl>
+            <dt>Device Name</dt>
+            <dd>@_device.DeviceName</dd>
+
+            <dt>Device Manufacturer</dt>
+            <dd>@_device.DeviceManufacturer</dd>
+
+            <dt>Device Type</dt>
+            <dd>@_device.DeviceType</dd>
+
+            <dt>First seen</dt>
+            <dd>@_device.CreatedAt</dd>
+        </dl>
+    </MudPaper>
+}
+
+<h3 class="mt-4">Device Statistics</h3>
+<MudPaper Class="p-4">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudIconButton StartIcon="@Icons.Material.Filled.CalendarToday">1D</MudIconButton>
+        <MudIconButton StartIcon="@Icons.Material.Filled.CalendarViewWeek">1W</MudIconButton>
+        <MudIconButton StartIcon="@Icons.Material.Filled.CalendarMonth">1M</MudIconButton>
+    </MudButtonGroup>
+    
+    <div id="job-count"></div>
+    
+</MudPaper>

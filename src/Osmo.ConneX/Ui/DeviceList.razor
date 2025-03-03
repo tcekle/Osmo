@@ -1,0 +1,70 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Osmo.Common.Database.Models
+@using Osmo.Common.Services
+@using Osmo.Database
+
+@inject IDbContextFactory<OsmoContext> _osmoContextFactory
+@inject GoldenLayoutService _goldenLayoutService
+
+<h3>Programmable Devices</h3>
+
+<MudTable ServerData="ServerReload"
+          T="ProgrammableDevice"
+          Hover
+          Dense="true"
+          RowClass="cursor-pointer"
+          OnRowClick="RowClickEvent">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Device Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Manufacturer</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">Type</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="ProgrammableDevice">First seen</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Device Name">@context.DeviceName</MudTd>
+        <MudTd DataLabel="Sign">@context.DeviceManufacturer</MudTd>
+        <MudTd DataLabel="Type">@context.DeviceType</MudTd>
+        <MudTd DataLabel="First seen">@context.CreatedAt</MudTd>
+    </RowTemplate>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager/>
+    </PagerContent>
+</MudTable>
+
+@code {
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    // protected override Task OnInitializedAsync()
+    // {
+    //     _osmoContextFactory.
+    // }
+
+    private async Task<TableData<ProgrammableDevice>> ServerReload(TableState state, CancellationToken token)
+    {
+        await using var osmodb = await _osmoContextFactory.CreateDbContextAsync(token);
+
+        var results = osmodb.ProgrammableDevices
+            .OrderByDescending(d => d.DeviceName)
+            .Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        
+        int totalItems = await osmodb.ProgrammableDevices.CountAsync(token);
+        
+        return new TableData<ProgrammableDevice> { TotalItems = totalItems, Items = results};
+    }
+    
+    private async Task RowClickEvent(TableRowClickEventArgs<ProgrammableDevice> tableRowClickEventArgs)
+    {
+        await _goldenLayoutService.AddRoute("connex-device-details", "Device Details", new DeviceDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
+    }
+    
+    private record DeviceDetailsParameters(string DeviceId);
+}

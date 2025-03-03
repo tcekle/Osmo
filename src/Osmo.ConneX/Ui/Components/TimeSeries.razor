@@ -1,0 +1,159 @@
+﻿@using Osmo.ConneX.Services
+@using System.Text.Json.Serialization
+
+@inject IJSRuntime _jsRuntime
+
+<div class="@Class">
+    <div id="@_timeseriesChartId"></div>    
+</div>
+
+
+@code {
+    private string _timeseriesChartId = $"timeseries-{Guid.NewGuid()}";
+    private bool _disposed = false;
+    
+    [Parameter, EditorRequired]
+    public TimeSeriesTrace Trace { get; set; }
+    
+    [Parameter, EditorRequired]
+    public string ChartTitle { get; set; }
+    
+    [Parameter]
+    public string Class { get; set; }
+    
+    /// <summary>
+    /// Method invoked after each time the component has been rendered interactively and the UI has finished
+    /// updating (for example, after elements have been added to the browser DOM). Any <see cref="T:Microsoft.AspNetCore.Components.ElementReference" />
+    /// fields will be populated by the time this runs.
+    /// This method is not invoked during prerendering or server-side rendering, because those processes
+    /// are not attached to any live browser DOM and are already complete before the DOM is updated.
+    /// Note that the component does not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />,
+    /// because that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+        
+        TimeSeriesLayout layout = new TimeSeriesLayout
+        {
+            Title = new Title { Text = ChartTitle },
+            Xaxis = new Xaxis
+            {
+                Range = [Trace.X.Min().AddDays(-1).ToString("yyyy-MM-dd"), Trace.X.Max().AddDays(1).ToString("yyyy-MM-dd")],
+                Rangeslider = new Rangeslider
+                {
+                    Range = [Trace.X.Min().AddDays(-1).ToString("yyyy-MM-dd"), Trace.X.Max().AddDays(1).ToString("yyyy-MM-dd")]
+                }
+            },
+            Yaxis = new Yaxis
+            {
+                Range = [Trace.Y.Min(), Trace.Y.Max()]
+            }
+        };
+
+        var jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Osmo.ConneX/script/timeSeries.js");
+        await jsModule.InvokeVoidAsync("renderTimeSeries", _timeseriesChartId, Trace, layout);
+    }
+    
+    /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+    public void Dispose()
+    {
+        _disposed = true;
+    }
+
+    public class Line
+    {
+        [JsonPropertyName("color")]
+        public string Color { get; set; } = "#17BECF";
+    }
+
+    public class TimeSeriesTrace
+    {
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "scatter";
+        
+        [JsonPropertyName("mode")]
+        public string Mode { get; set; } = "lines";
+        
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        
+        [JsonPropertyName("x")]
+        public List<DateTime> X { get; set; }
+        
+        [JsonPropertyName("y")]
+        public List<double> Y { get; set; }
+        
+        [JsonPropertyName("line")]
+        public Line Line { get; set; } = new();
+    }
+    
+public class TimeSeriesLayout
+{
+    [JsonPropertyName("title")]
+    public Title Title { get; set; }
+    
+    [JsonPropertyName("xaxis")]
+    public Xaxis Xaxis { get; set; }
+    
+    [JsonPropertyName("yaxis")]
+    public Yaxis Yaxis { get; set; }
+}
+
+public class Title
+{
+    [JsonPropertyName("text")]
+    public string Text { get; set; }
+}
+
+public class Xaxis
+{
+    [JsonPropertyName("autorange")]
+    public bool Autorange { get; set; }
+    
+    [JsonPropertyName("range")]
+    public string[] Range { get; set; }
+    
+    [JsonPropertyName("rangeslider")]    
+    public Rangeslider Rangeslider { get; set; }
+    
+    [JsonPropertyName("type")]
+    public string Type { get; } = "date";
+}
+
+public class Rangeslider
+{
+    [JsonPropertyName("range")]
+    public string[] Range { get; set; }
+}
+
+public class Yaxis
+{
+    [JsonPropertyName("autorange")]
+    public bool Autorange { get; set; } = true;
+    
+    [JsonPropertyName("range")]
+    public double[] Range { get; set; }
+    
+    [JsonPropertyName("type")]
+    public string Type { get; } = "linear";
+}
+
+
+
+
+}

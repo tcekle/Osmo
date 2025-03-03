@@ -1,0 +1,8 @@
+﻿query GetLastFiftyMqtt {
+    messages (take: 50) {
+      items {
+        topic
+        payload
+      }
+    }
+}

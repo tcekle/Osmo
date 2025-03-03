@@ -1,0 +1,31 @@
+﻿@using Osmo.Common.Plugins
+@using System.Reflection
+@inject IEnumerable<IOsmoPlugin> _plugins
+
+<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="_assemblies">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+@code
+{
+    private HashSet<Assembly> _assemblies;
+    
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _assemblies = _plugins.Select(p => p.GetType().Assembly).ToHashSet();
+        _assemblies.RemoveWhere(a => a == typeof(App).Assembly);
+    }
+}

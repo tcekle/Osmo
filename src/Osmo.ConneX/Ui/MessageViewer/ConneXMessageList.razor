@@ -1,0 +1,71 @@
+﻿@using System.ComponentModel.DataAnnotations.Schema
+@using System.Text
+
+<MudTable ServerData="ServerReload" 
+          Dense="true" 
+          Hover="true"
+          RowClass="cursor-pointer">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">MQTT messages</MudText>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Timestamp</MudTh>
+        <MudTh>Topic</MudTh>
+        <MudTh>Payload</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Timestamp">@context.Timestamp</MudTd>
+        <MudTd DataLabel="Topic">@context.Topic</MudTd>
+        <MudTd DataLabel="Payload">@context.PayloadAsStringTrimmed</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+
+    private PostgresDatabaseService _dbMessages = new PostgresDatabaseService("connex_messages");
+    
+    // /// <summary>
+    // /// Method invoked when the component is ready to start, having received its
+    // /// initial parameters from its parent in the render tree.
+    // /// Override this method if you will perform an asynchronous operation and
+    // /// want the component to refresh when that operation is completed.
+    // /// </summary>
+    // /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     _dbMessages 
+    //
+    //     
+    //     
+    //     
+    // }
+    
+    /// <summary>
+    /// Here we simulate getting the paged, filtered and ordered data from the server, with a token for canceling this request
+    /// </summary>
+    private async Task<TableData<ConneXMessage>> ServerReload(TableState state, CancellationToken token)
+    {
+        string query = @"SELECT * FROM ""Entries"" ORDER BY ""Timestamp"" DESC LIMIT 100";
+        var result = await _dbMessages.QueryAsync<ConneXMessage>(query);
+        
+        return new TableData<ConneXMessage>() { TotalItems = 100, Items = result };
+    }
+    
+    private class ConneXMessage
+    {
+        public Guid MessageModelId { get; set; }
+        
+        public string Topic { get; set; }
+        
+        public string ContentType { get; set; }
+        
+        public byte[] Payload { get; set; }
+
+        public string PayloadAsString { get => Encoding.UTF8.GetString(Payload); }
+        
+        public string PayloadAsStringTrimmed => PayloadAsString.AsSpan().Slice(0, Math.Min(50, PayloadAsString.Length)).ToString();
+
+        public DateTime Timestamp { get; set; }
+    }
+
+}

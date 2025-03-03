@@ -1,0 +1,92 @@
+﻿@page "/connex/handler/{Id:int}"
+@using Osmo.ConneX.GraphQl
+
+@inject IConneXClient _connexGraphql
+
+@if (!_loading)
+{
+    @if (!_systemFound)
+    {
+        <MudText>No system found with ID @Id.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.h2" class="mb-2">@_system.Entity.EntityName</MudText>
+        
+        <MudPaper class="p-4 my-2">
+            <MudText Typo="Typo.h4" class="mb-2">System information</MudText>
+            
+            <dl>
+                <dt>Hostname</dt>
+                <dd>@_system.HostName</dd>
+                    
+                <dt>IP Address</dt>
+                <dd>@_system.IpAddress</dd>
+                    
+                <dt>Factory</dt>
+                <dd>@_system.MachineFactory</dd>
+                    
+                <dt>System Type</dt>
+                <dd>@_system.HandlerType</dd>
+                    
+                    
+            </dl>
+            
+        </MudPaper>
+        
+        <MudPaper Class="p-4 my-2">
+            <MudText Typo="Typo.h4" class="mb-2">Programmers</MudText>
+            
+            <MudDataGrid Items="@_system.Programmers">
+                <Columns>
+                    <HierarchyColumn />
+                    <PropertyColumn Property="x => x.Entity.EntityName" Title="Name"></PropertyColumn>
+                    <PropertyColumn Property="x => x.ProgrammerType" Title="Type"></PropertyColumn>
+                    <PropertyColumn Property="x => x.IpAddress" Title="IP Address"></PropertyColumn>
+                </Columns>
+                <ChildRowContent>
+                    <MudText Typo="Typo.h5" class="mb-2">Adapters</MudText>
+                    
+                    <MudDataGrid Items="@context.Item.Adapters">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Entity.EntityIdentifier" Title="Identifier"></PropertyColumn>
+                            <PropertyColumn Property="x => x.AdapterId" Title="Adapter ID"></PropertyColumn>
+                        </Columns>
+                        
+                    </MudDataGrid>
+                    
+                </ChildRowContent>
+            </MudDataGrid>
+        </MudPaper>
+        
+
+    }
+}
+
+@code
+{
+    private bool _loading = true;
+    private bool _systemFound = false;
+    private IGetSystem_System _system;
+
+    [Parameter]
+    public int Id { get; set; }
+    
+    
+
+    /// <summary>
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
+    /// Override this method if you will perform an asynchronous operation and
+    /// want the component to refresh when that operation is completed.
+    /// </summary>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        var handler = await _connexGraphql.GetSystem.ExecuteAsync(Id);
+        _system = handler.Data.System;
+        
+        _systemFound =  _system != null;
+        _loading = false;
+    }
+}

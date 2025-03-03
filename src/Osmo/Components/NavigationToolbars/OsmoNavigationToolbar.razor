@@ -1,0 +1,21 @@
+﻿@using Osmo.Common.Services
+@inject GoldenLayoutService _goldenLayoutService
+
+<div class="container pl-0">
+    <div class="row">
+        <h3>Osmo</h3>
+    </div>
+    <div class="row">
+        <MudItem xs="12">
+            <MudTreeView Hover T="string" Dense="true" SelectionMode="SelectionMode.SingleSelection">
+                <MudTreeViewItem Value='"Components"'>
+                    <MudTreeViewItem Text="Device List" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("osmo-device-list", "Device List"))"/>
+                </MudTreeViewItem>
+            </MudTreeView>
+        </MudItem>
+    </div>
+</div>
+
+@code {
+    
+}
