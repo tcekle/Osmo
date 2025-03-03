@@ -1,34 +1,41 @@
 ﻿namespace Osmo.Common.Database.Models;
 
+/// <summary>
+/// A unit reresenting a job that can be executed by a programmer.
+/// </summary>
 public class Job : Unit
 {
+    /// <summary>
+    /// Gets or sets the related algorithm identifier.
+    /// </summary>
     public Guid RelatedAlgorithmId { get; set; }
     
+    /// <summary>
+    /// Gets or sets the given job identifier from the job package.
+    /// </summary>
     public Guid GivenJobId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the job name.
+    /// </summary>
     public string JobName
     {
         get => Name; 
         set => Name = value;
     }
     
+    /// <summary>
+    /// Gets or sets the optional job description.
+    /// </summary>
     public string JobDescription { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the job checksum.
+    /// </summary>
     public string JobChecksum { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the job's settings checksum.
+    /// </summary>
     public string SettingChecksum { get; set; }
 }
-
-/*
- *     "Job": {
-      "AlgorithmId": "31983706628437248",
-      "JobId": "69467bae-9fa3-460f-aa6d-9ef233ddd62b",
-      "JobName": "WD DO4-128G FS testing",
-      "JobDescription": "",
-      "DeviceName": "SDINFDO4-128G",
-      "DeviceManufacturer": "Western Digital",
-      "DeviceType": "Ufs",
-      "DeviceID": "29089",
-      "AlgoVersion": "3.3.53",
-      "JobChecksum": "D50802DB",
-      "SettingChecksum": "2C1C9B00"
-    },
- */

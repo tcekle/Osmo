@@ -9,7 +9,7 @@
         <MudItem xs="12">
             <MudTreeView Hover T="string" Dense="true" SelectionMode="SelectionMode.SingleSelection">
                 <MudTreeViewItem Value='"Components"'>
-                    <MudTreeViewItem Text="Device List" OnDoubleClick="@(() => _goldenLayoutService.AddRoute("osmo-device-list", "Device List"))"/>
+                    <MudTreeViewItem Text="Device List" OnDoubleClick="@(() => _goldenLayoutService.AddComponent("osmo-device-list", "Device List"))"/>
                 </MudTreeViewItem>
             </MudTreeView>
         </MudItem>

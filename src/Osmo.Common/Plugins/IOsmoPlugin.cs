@@ -1,5 +1,8 @@
 ﻿namespace Osmo.Common.Plugins;
 
+/// <summary>
+/// An interface representing an Osmo plugin
+/// </summary>
 public interface IOsmoPlugin
 {
     /// <summary>
@@ -21,10 +24,4 @@ public interface IOsmoPlugin
     /// Gets the UI type to use for the plugin
     /// </summary>
     Type Type { get; }
-
-    // /// <summary>
-    // /// Gets a new instance of the plugin's tab
-    // /// </summary>
-    // /// <returns>A new instance of the plugin's tab</returns>
-    // Task<DisplayTab> GetNewTabInstance();
 }

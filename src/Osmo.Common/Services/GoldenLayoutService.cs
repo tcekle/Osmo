@@ -1,14 +1,26 @@
 ﻿namespace Osmo.Common.Services;
 
+/// <summary>
+/// Service to interact with the GoldenLayout javascript library.
+/// </summary>
 public class GoldenLayoutService
 {
-    public event Func<string, string, object, Task>? OnAddRoute;
+    /// <summary>
+    /// Event to add a component to the GoldenLayout.
+    /// </summary>
+    public event Func<string, string, object, Task> OnAddComponent;
 
-    public async Task AddRoute(string route, string title, object parameters = null)
+    /// <summary>
+    /// Add a component to the GoldenLayout.
+    /// </summary>
+    /// <param name="component">The name of the component to add.</param>
+    /// <param name="title"></param>
+    /// <param name="parameters"></param>
+    public async Task AddComponent(string component, string title, object parameters = null)
     {
-        if (OnAddRoute != null)
+        if (OnAddComponent != null)
         {
-            await OnAddRoute.Invoke(route, title, parameters);
+            await OnAddComponent.Invoke(component, title, parameters);
         }
     }
 }

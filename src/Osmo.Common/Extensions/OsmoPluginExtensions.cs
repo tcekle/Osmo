@@ -1,16 +1,28 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Osmo.Common.Plugins;
 
 namespace Osmo.Common.Extensions;
 
+using Plugins;
+
+/// <summary>
+/// Extension methods for adding Osmo plugins to the service collection.
+/// </summary>
 public static class OsmoPluginExtensions
 {
+    /// <summary>
+    /// Adds all Osmo plugins to the service collection.
+    /// </summary>
+    /// <param name="serviceCollection"></param>
     public static void AddOsmoPlugins(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddBuiltInPlugins();
     }
 
+    /// <summary>
+    /// Adds all built-in Osmo plugins to the service collection.
+    /// </summary>
+    /// <param name="serviceCollection">The <see cref="IServiceCollection"/> to add the plugins to.</param>
     private static void AddBuiltInPlugins(this IServiceCollection serviceCollection)
     {
         List<Type> pluginTypes = new();
@@ -30,7 +42,6 @@ public static class OsmoPluginExtensions
         foreach (var pluginType in pluginTypes)
         {
             serviceCollection.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IOsmoPlugin), pluginType));
-            //serviceCollection.TryAddTransient(typeof(IOsmoPlugin), pluginType);
         }
     }
 }

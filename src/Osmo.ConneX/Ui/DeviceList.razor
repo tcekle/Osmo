@@ -63,7 +63,7 @@
     
     private async Task RowClickEvent(TableRowClickEventArgs<ProgrammableDevice> tableRowClickEventArgs)
     {
-        await _goldenLayoutService.AddRoute("connex-device-details", "Device Details", new DeviceDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
+        await _goldenLayoutService.AddComponent("connex-device-details", "Device Details", new DeviceDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
     }
     
     private record DeviceDetailsParameters(string DeviceId);

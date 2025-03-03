@@ -1,8 +1,9 @@
-﻿using Osmo.Common.Database.Attributes;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Osmo.Common.Database.Models;
+
+using Attributes;
 
 /// <summary>
 /// Abstract class representing a time series metric 

@@ -48,7 +48,7 @@
     
     private async Task RowClickEvent(TableRowClickEventArgs<Job> tableRowClickEventArgs)
     {
-        await _goldenLayoutService.AddRoute("connex-job-details", tableRowClickEventArgs.Item.JobName , new JobDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
+        await _goldenLayoutService.AddComponent("connex-job-details", tableRowClickEventArgs.Item.JobName , new JobDetailsParameters(tableRowClickEventArgs.Item.Id.ToString()));
     }
     
     private record JobDetailsParameters(string JobId);
