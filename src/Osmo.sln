@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Osmo.Common", "Osmo.Common\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Osmo.ConneX", "Osmo.ConneX\Osmo.ConneX.csproj", "{75F8A0D4-0B9A-42A0-B65A-A421B7ACA9E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "BlazorApp1\BlazorApp1.csproj", "{CA49E545-1244-4532-9983-8019E752C3B4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Osmo.Database", "Osmo.Database\Osmo.Database.csproj", "{9758BB04-F7FB-43A7-87CE-AAF9DA23B527}"
 EndProject
 Global
@@ -28,10 +26,6 @@ Global
 		{75F8A0D4-0B9A-42A0-B65A-A421B7ACA9E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75F8A0D4-0B9A-42A0-B65A-A421B7ACA9E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75F8A0D4-0B9A-42A0-B65A-A421B7ACA9E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CA49E545-1244-4532-9983-8019E752C3B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA49E545-1244-4532-9983-8019E752C3B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CA49E545-1244-4532-9983-8019E752C3B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CA49E545-1244-4532-9983-8019E752C3B4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9758BB04-F7FB-43A7-87CE-AAF9DA23B527}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9758BB04-F7FB-43A7-87CE-AAF9DA23B527}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9758BB04-F7FB-43A7-87CE-AAF9DA23B527}.Release|Any CPU.ActiveCfg = Release|Any CPU
