@@ -66,7 +66,7 @@ public static class OsmoServicesExtensions
 
     public static async Task ConfigureOsmoServices(this IApplicationBuilder applicationBuilder)
     {
-        await applicationBuilder.AddOsmoDatabase();
+        await applicationBuilder.ConfigureOsmoDatabase();
         await applicationBuilder.AddConneXMetricsDatabase();
     }
     
