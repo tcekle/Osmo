@@ -34,7 +34,7 @@ public static class OsmoServicesExtensions
         services.AddSingleton<WeatherForecastService>();
 
         services.AddMudServices();
-        services.AddOsmoDatabase();
+        services.AddOsmoDatabase(configuration);
 
         services.AddSerilog(config =>
         {

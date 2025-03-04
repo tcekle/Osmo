@@ -26,14 +26,6 @@
 <MudLayout>
     <MudAppBar Dense="true" Color="Color.Primary">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-        <MudMenu Label="View" Dense="true">
-            <MudMenu Label="ConneX">
-                <MudMenuItem Label="Dashboard" @onclick="@(() => _goldenLayoutService.AddComponent("connex-dashboard", "ConneX Dashboard"))" />
-                <MudMenuItem Label="Analyzer" @onclick="@(() => _goldenLayoutService.AddComponent("connex-analyzer", "ConneX Analyzer"))"  />
-                <MudMenuItem Label="Metrics" @onclick="@(() => _goldenLayoutService.AddComponent("connex-metrics", "ConneX Metrics"))"  />
-                <MudMenuItem Label="Messages" @onclick="@(() => _goldenLayoutService.AddComponent("connex-message-list", "ConneX Message List"))"  />
-            </MudMenu>
-        </MudMenu>
         <MudSpacer />
         <MudToggleIconButton 
             @bind-Toggled="@_darkMode" 
