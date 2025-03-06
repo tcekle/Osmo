@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Osmo.ConneX.Providers;
@@ -11,9 +12,11 @@ using Osmo.ConneX.Providers;
 namespace Osmo.ConneX.Migrations.ConneXMetrics
 {
     [DbContext(typeof(ConneXMetricsProviderContext))]
-    partial class ConneXMetricsProviderContextModelSnapshot : ModelSnapshot
+    [Migration("20250306195848_AddConneXMetadata")]
+    partial class AddConneXMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

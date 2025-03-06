@@ -1,10 +1,13 @@
-﻿@using Osmo.ConneX.GraphQl
+﻿@using MassTransit
+@using Osmo.Common.Messages
+@using Osmo.ConneX.GraphQl
 @using Osmo.ConneX.Models
 @using Osmo.ConneX.Services
 @using System.Text.Json
 
 @inject IConneXClient _connexGraphql
 @inject ConneXRecordInjesterService _recordInjesterService
+@inject IBus _massTransitBus
 
 <h3>Record Ingester</h3>
 
@@ -57,19 +60,57 @@
 
     private async Task StartImport()
     {
-        var messageCount = await _connexGraphql.GetLumenXMessageCount.ExecuteAsync();
-        _recordCount = messageCount.Data.Messages.TotalCount;
-        
         _importInProgress = true;
 
-        await IngestRecords();
+        // await IngestRecords();
+        await IngestAllRecords();
+    }
 
-        // for (int i = 0; i < _recordCount; i++)
-        // {
-        //     await Task.Delay(100);
-        //     _recordsImported++;
-        //     await InvokeAsync(StateHasChanged);
-        // }
+    private async Task IngestAllRecords()
+    {
+        int skip = 0;
+        int take = 50;
+        bool hasNextPage = true;
+
+        var timeLimit = DateTimeOffset.UtcNow.AddMonths(-1);
+        
+        var messageCount = await _connexGraphql.GetAllMessageCount.ExecuteAsync(timeLimit);
+        _recordCount = messageCount.Data.Messages.TotalCount;
+
+        while (hasNextPage)
+        {
+            // await Task.Delay(50);
+            var pageResult = await _connexGraphql.GetAllMessages.ExecuteAsync(skip, take, timeLimit);
+            
+            if (pageResult.Data?.Messages is null)
+            {
+                await Task.Delay(50);
+                continue;
+            }
+
+            List<MqttMessage> messages = new List<MqttMessage>();
+            if (pageResult.Data.Messages.Items != null)
+            {
+                foreach (var message in pageResult.Data.Messages.Items)
+                {
+                    messages.Add(new MqttMessage()
+                    {
+                        Id = message.MessageModelId,
+                        Topic = message.Topic,
+                        PayloadAsString = message.PayloadAsString,
+                        ContentType = message.ContentType,
+                        Timestamp = message.Timestamp.UtcDateTime
+                    });
+                }
+                
+                await _massTransitBus.Publish(new BulkMqttMessage { Messages = messages });
+            }
+
+            hasNextPage = pageResult.Data?.Messages?.PageInfo?.HasNextPage ?? false;
+            skip += take;
+            _recordsImported += pageResult.Data.Messages.Items.Count;
+            await InvokeAsync(StateHasChanged);
+        }
     }
     
     private async Task IngestRecords()
@@ -78,6 +119,9 @@
         int take = 50;
         bool hasNextPage = true;
         string topicFilter = "connex/programmer/lumenx/legacy/programmingcomplete";
+        
+        var messageCount = await _connexGraphql.GetLumenXMessageCount.ExecuteAsync();
+        _recordCount = messageCount.Data.Messages.TotalCount;
 
         JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {

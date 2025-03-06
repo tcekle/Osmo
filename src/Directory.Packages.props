@@ -7,8 +7,9 @@
     <PackageVersion Include="CodeBeam.MudBlazor.Extensions" Version="8.0.0" />
     <PackageVersion Include="Dapper" Version="2.0.143" />
     <PackageVersion Include="Dapper.SqlBuilder" Version="2.0.78" />
-    <PackageVersion Include="MassTransit" Version="8.0.16" />
-    <PackageVersion Include="MassTransit.Abstractions" Version="8.0.16" />
+    <PackageVersion Include="MassTransit" Version="8.3.6" />
+    <PackageVersion Include="MassTransit.Abstractions" Version="8.3.6" />
+    <PackageVersion Include="MassTransit.RabbitMQ" Version="8.3.6" />
     <PackageVersion Include="Microsoft.AspNetCore.Components" Version="9.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="9.0.40" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.2" />
@@ -23,8 +24,8 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageVersion Include="MudBlazor" Version="8.2.0" />
-    <PackageVersion Include="MQTTnet" Version="4.3.3.952" />
-    <PackageVersion Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
+    <PackageVersion Include="MQTTnet" Version="5.0.1.1416" />
+    <PackageVersion Include="MQTTnet.Extensions.ManagedClient" Version="4.3.7.1207" />
     <PackageVersion Include="Npgsql" Version="9.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     <PackageVersion Include="Serilog.Sinks.File" Version="4.1.0" />

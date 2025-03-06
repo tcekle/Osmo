@@ -1,0 +1,1 @@
+docker compose -p osmo-development -f docker-compose-development.yml down

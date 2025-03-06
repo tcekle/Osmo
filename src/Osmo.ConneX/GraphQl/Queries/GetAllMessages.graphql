@@ -1,0 +1,26 @@
+query GetAllMessages($skip: Int!, $take: Int!, $fromDate: DateTime!) {
+    messages(
+        skip: $skip, 
+        take: $take
+        where: {
+            timestamp: { gte: $fromDate }
+        }
+        order: [ {timestamp: ASC } ]) {
+        items {
+            messageModelId
+            topic
+            contentType
+            timestamp
+            payloadAsString
+        }
+        pageInfo {
+            hasNextPage
+        }
+    }
+}
+
+query GetAllMessageCount($fromDate: DateTime!) {
+    messages (where: { timestamp: { gte: $fromDate }}) {
+        totalCount
+    }
+}

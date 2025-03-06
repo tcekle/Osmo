@@ -1,0 +1,21 @@
+query GetSystemBeginAndEndRun($systemIdentifier: String!) {
+    messages (
+        order: { timestamp :DESC }
+        where: {
+            or: [
+                { and: [{ topic: { contains: "h700/beginrun" } }, { topic: { contains: $systemIdentifier } }] }
+                { and: [{ topic: { contains: "h700/endrun" } }, { topic: { contains: $systemIdentifier } }] }
+            ]
+        }
+        take: 50
+    ) {
+        totalCount
+        items {
+            topic
+            contentType
+            timestamp
+            messageModelId
+            payloadAsString
+        }
+    }
+}

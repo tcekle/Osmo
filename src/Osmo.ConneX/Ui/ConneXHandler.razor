@@ -1,7 +1,10 @@
 ﻿@page "/connex/handler/{Id:int}"
+@using Microsoft.EntityFrameworkCore
 @using Osmo.ConneX.GraphQl
+@using Osmo.ConneX.Providers
 
 @inject IConneXClient _connexGraphql
+@inject IDbContextFactory<ConneXMetricsProviderContext> _connexMetricsProviderContextFactory
 
 @if (!_loading)
 {
@@ -28,10 +31,7 @@
                     
                 <dt>System Type</dt>
                 <dd>@_system.HandlerType</dd>
-                    
-                    
             </dl>
-            
         </MudPaper>
         
         <MudPaper Class="p-4 my-2">
@@ -59,7 +59,35 @@
             </MudDataGrid>
         </MudPaper>
         
+        <MudPaper Class="p-4 my-2">
+            <MudTimeline Modifiers TimelinePosition="TimelinePosition.Start">
+                @foreach (var evt in _events)
+                {
+                    <MudTimelineItem>
+                        <ItemOpposite>
+                            <p>Test</p>
+                        </ItemOpposite>
+                        <ItemContent>
+                            <MudCard Outlined Class="p-2">
+                                @if (evt is BeginRunEvent beginRunEvent)
+                                {
+                                    <MudText Typo="Typo.h6">Begin job</MudText>
+                                    <MudText Typo="Typo.body2">Job Name: @beginRunEvent.TaskName</MudText>
+                                    <MudText Class="pt-4" Typo="Typo.caption">@evt.Timestamp.DateTime</MudText>
+                                }
 
+                                @if (evt is EndRunEvent endRunEvent)
+                                {
+                                    <MudText Typo="Typo.h6">End job</MudText>
+                                    <MudText Typo="Typo.body2">Reason: @endRunEvent.TerminationReason</MudText>
+                                    <MudText Class="pt-4" Typo="Typo.caption">@evt.Timestamp.DateTime</MudText>
+                                }
+                            </MudCard>
+                        </ItemContent>
+                    </MudTimelineItem>
+                }
+            </MudTimeline>
+        </MudPaper>
     }
 }
 
@@ -72,6 +100,7 @@
     [Parameter]
     public int Id { get; set; }
     
+    private List<HandlerEvent> _events = new List<HandlerEvent>();
     
 
     /// <summary>
@@ -85,8 +114,68 @@
     {
         var handler = await _connexGraphql.GetSystem.ExecuteAsync(Id);
         _system = handler.Data.System;
+
+        _systemFound = _system != null;
+
+        if (_systemFound)
+        {
+            await GetHandlerEvents();
+        }
         
-        _systemFound =  _system != null;
         _loading = false;
+    }
+
+    /// <summary>
+    /// Gets the handler events from ConneX.
+    /// </summary>
+    private async Task GetHandlerEvents()
+    {
+        await using var context = await _connexMetricsProviderContextFactory.CreateDbContextAsync();
+
+        var events = context.MqttMessages
+            .Where(m => (m.Topic.Contains("h700/beginrun")
+                                    || m.Topic.Contains("h700/endrun"))
+                                && m.Topic.Contains(_system.HostName.ToLower()));
+        
+        foreach (var evt in events)
+        {
+            if (evt.Topic.Contains("beginrun"))
+            {
+                var beginRunEvent = System.Text.Json.JsonSerializer.Deserialize<BeginRunEvent>(evt.PayloadAsString);
+                beginRunEvent.Timestamp = evt.Timestamp;
+                _events.Add(beginRunEvent);
+            }
+
+            if (evt.Topic.Contains("endrun"))
+            {
+                var endRunEvent = System.Text.Json.JsonSerializer.Deserialize<EndRunEvent>(evt.PayloadAsString);
+                endRunEvent.Timestamp = evt.Timestamp;
+                _events.Add(endRunEvent);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Base class for all handler events.
+    /// </summary>
+    private record HandlerEvent
+    {
+        public DateTimeOffset Timestamp { get; set; }
+    }
+    
+    /// <summary>
+    /// End run event.
+    /// </summary>
+    private record EndRunEvent : HandlerEvent
+    {
+        public string TerminationReason { get; init; }
+    }
+    
+    /// <summary>
+    /// Begin run event.
+    /// </summary>
+    private record BeginRunEvent : HandlerEvent
+    {
+        public string TaskName { get; init; }
     }
 }

@@ -1,18 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Osmo.ConneX.Models;
 
 namespace Osmo.ConneX.Providers;
 
+using Common.Messages;
+using Models;
+
+/// <summary>
+/// ConneX metrics provider context.
+/// </summary>
 internal class ConneXMetricsProviderContext : DbContext
 {
-    public static string DefaultConnectionString = $"Host=127.0.0.1;Database=osmo_connex_metrics;Username=dataio;Password=dataio";
-    public static DbContextOptions DefaultOptions = new DbContextOptionsBuilder().UseNpgsql(DefaultConnectionString).Options;
+    private static string DefaultConnectionString = $"Host=127.0.0.1;Database=osmo_connex_metrics;Username=dataio;Password=dataio";
+    private static DbContextOptions DefaultOptions = new DbContextOptionsBuilder().UseNpgsql(DefaultConnectionString).Options;
     
+    /// <summary>
+    /// Gets or sets the programming statistics.
+    /// </summary>
     public DbSet<ProgrammingStatistic> ProgrammingStatistics { get; set; }
     
     /// <summary>
-    ///
+    /// Gets or sets the MQTT messages.
+    /// </summary>
+    public DbSet<MqttMessage> MqttMessages { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the ConneX metadata.
+    /// </summary>
+    public DbSet<ConneXMetaData> ConneXMetaData { get; set; }
+    
+    /// <summary>
+    /// Creates a new instance of the <see cref="ConneXMetricsProviderContext"/> class.
     /// Create a new migration like so:
     ///   dotnet ef migrations add MIGRATION_NAME --startup-project Osmo.ConneX.csproj --context ConneXMetricsProviderContext --output-dir Migrations/ConneXMetrics
     /// </summary>
@@ -23,6 +40,9 @@ internal class ConneXMetricsProviderContext : DbContext
     {
     }
     
+    /// <summary>
+    /// Creates a new instance of the <see cref="ConneXMetricsProviderContext"/> class.
+    /// </summary>
     public ConneXMetricsProviderContext()
         : base(DefaultOptions)
     {
@@ -51,21 +71,5 @@ internal class ConneXMetricsProviderContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ProgrammingStatistic>().HasKey(table => new { table.Id, table.TimeStamp });
-    }
-}
-
-internal class OsmoConnexMetricsProviderContextFactory : IDesignTimeDbContextFactory<ConneXMetricsProviderContext>, IDbContextFactory<ConneXMetricsProviderContext>
-{
-    public ConneXMetricsProviderContext CreateDbContext() => CreateDbContext([]);
-
-    /// <summary>Creates a new instance of a derived context.</summary>
-    /// <param name="args">Arguments provided by the design-time service.</param>
-    /// <returns>An instance of <typeparamref name="TContext" />.</returns>
-    public ConneXMetricsProviderContext CreateDbContext(string[] args)
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<ConneXMetricsProviderContext>();
-        optionsBuilder.UseNpgsql(ConneXMetricsProviderContext.DefaultConnectionString);
-                
-        return new ConneXMetricsProviderContext(optionsBuilder.Options);
     }
 }

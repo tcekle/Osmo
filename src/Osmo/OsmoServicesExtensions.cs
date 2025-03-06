@@ -49,15 +49,23 @@ public static class OsmoServicesExtensions
 
         services.AddMassTransit(busConfig =>
         {
+            busConfig.AddConsumer<MassTransitNotificationMessageConsumer>();
             busConfig.AddConsumers(typeof(Program).Assembly);
-            busConfig.UsingInMemory((context, cfg) =>
+            busConfig.AddConneXBusConsumers();
+            busConfig.UsingRabbitMq((context, cfg) =>
             {
+                cfg.Host("localhost", "/", h =>
+                {
+                    h.Username("admin");
+                    h.Password("admin");
+                });
+
+                cfg.AutoStart = true;
                 cfg.ConfigureEndpoints(context);
             });
         });
-
+        
         services.AddConneXPlugin(configuration);
-        // services.AddOsmoPlugins();
 
         services.AddSingleton<GlobalNotificationService>();
         services.AddScoped<GoldenLayoutService>();
@@ -67,7 +75,7 @@ public static class OsmoServicesExtensions
     public static async Task ConfigureOsmoServices(this IApplicationBuilder applicationBuilder)
     {
         await applicationBuilder.ConfigureOsmoDatabase();
-        await applicationBuilder.AddConneXMetricsDatabase();
+        await applicationBuilder.ConfigureConneXMetricsDatabase();
     }
     
     private static void AddBuiltInComponents(this CircuitOptions options)

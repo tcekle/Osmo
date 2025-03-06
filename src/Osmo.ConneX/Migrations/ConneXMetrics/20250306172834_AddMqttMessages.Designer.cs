@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Osmo.ConneX.Providers;
@@ -11,9 +12,11 @@ using Osmo.ConneX.Providers;
 namespace Osmo.ConneX.Migrations.ConneXMetrics
 {
     [DbContext(typeof(ConneXMetricsProviderContext))]
-    partial class ConneXMetricsProviderContextModelSnapshot : ModelSnapshot
+    [Migration("20250306172834_AddMqttMessages")]
+    partial class AddMqttMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,28 +55,6 @@ namespace Osmo.ConneX.Migrations.ConneXMetrics
                     b.HasKey("Id");
 
                     b.ToTable("mqtt_messages");
-                });
-
-            modelBuilder.Entity("Osmo.ConneX.Models.ConneXMetaData", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Key")
-                        .HasColumnType("text")
-                        .HasColumnName("key");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text")
-                        .HasColumnName("value");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("connex_metadata");
                 });
 
             modelBuilder.Entity("Osmo.ConneX.Models.ProgrammingStatistic", b =>

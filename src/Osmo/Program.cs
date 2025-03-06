@@ -3,19 +3,21 @@ using Osmo;
 using Serilog;
 using Serilog.Events;
 
-IConfigurationRoot baseConfiguration;
+var configurationBuilder = new ConfigurationBuilder();
 string appSettingsPath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "appsettings.json");
+string devAppSettingsPath = Path.Combine(Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName), "appsettings.Development.json");
+
 if (File.Exists(appSettingsPath))
 {
-    baseConfiguration = new ConfigurationBuilder()
-        .AddJsonFile(appSettingsPath)
-        .Build();
-}
-else
-{
-    baseConfiguration = new ConfigurationBuilder().Build();
+    configurationBuilder.AddJsonFile(appSettingsPath);
 }
 
+if (File.Exists(devAppSettingsPath))
+{
+    configurationBuilder.AddJsonFile(devAppSettingsPath);
+}
+
+var baseConfiguration = configurationBuilder.Build();
 
 // The initial "bootstrap" logger is able to log errors during start-up. It's completely replaced by the
 // logger configured in `UseSerilog()` below, once configuration and dependency-injection have both been set up successfully.

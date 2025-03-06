@@ -9,6 +9,7 @@
     <ItemGroup>
       <PackageReference Include="Dapper" />
       <PackageReference Include="Dapper.SqlBuilder" />
+      <PackageReference Include="MassTransit" />
       <PackageReference Include="MassTransit.Abstractions" />
       <PackageReference Include="Microsoft.Data.Sqlite" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

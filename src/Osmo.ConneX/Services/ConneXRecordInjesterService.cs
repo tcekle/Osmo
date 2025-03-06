@@ -15,6 +15,7 @@ internal class ConneXRecordInjesterService : IHostedService
     private readonly IDbContextFactory<ConneXMetricsProviderContext> _connexMetricsProviderContextFactory;
     private readonly ILogger<ConneXRecordInjesterService> _logger;
     private Task _worker;
+
     private CancellationTokenSource _cancellationTokenSource;
     private Channel<ConneXAuditEntry> _channel = Channel.CreateBounded<ConneXAuditEntry>(1000);
 
