@@ -10,7 +10,6 @@ OSMO (Open Source Manufacturing Orchestrator) is a flexible and extensible **Man
 - **Extensible Plugin Architecture** – Customize and extend functionalities for specific manufacturing needs.
 - **Customization & Scalability** – Adapt to business growth and evolving requirements.
 - **Community-Driven Development** – Continuous innovation through open-source contributions.
-- **Cross-Platform Compatibility** – Runs on Windows, Linux, and macOS.
 - **Integration Friendly** – Seamlessly connects with manufacturing systems, databases, and IoT devices.
 - **Real-Time Operations Management** – Optimize production efficiency with live tracking.
 - **PostgreSQL Support** – Uses an open-source database, compatible with TimescaleDB for time-series data.
