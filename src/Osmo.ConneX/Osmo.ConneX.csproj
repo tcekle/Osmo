@@ -7,10 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Osmo.Test" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CodeBeam.MudBlazor.Extensions" />
       <PackageReference Include="Dapper" />
       <PackageReference Include="Dapper.SqlBuilder" />
       <PackageReference Include="MassTransit" />
       <PackageReference Include="MassTransit.Abstractions" />
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
       <PackageReference Include="Microsoft.Data.Sqlite" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
         <PrivateAssets>all</PrivateAssets>
@@ -22,6 +28,7 @@
       <PackageReference Include="Microsoft.AspNetCore.Components" />
       <PackageReference Include="MQTTnet" />
       <PackageReference Include="MQTTnet.Extensions.ManagedClient" />
+      <PackageReference Include="Newtonsoft.Json" />
       <PackageReference Include="Npgsql" />
       <PackageReference Include="StrawberryShake.Server" />
       <PackageReference Include="MudBlazor" />
@@ -38,13 +45,10 @@
       </GraphQL>
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="Microsoft.AspNetCore.Components.Server">
-        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.13\Microsoft.AspNetCore.Components.Server.dll</HintPath>
-      </Reference>
-      <Reference Include="Microsoft.AspNetCore.Http.Abstractions">
-        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.13\Microsoft.AspNetCore.Http.Abstractions.dll</HintPath>
-      </Reference>
-    </ItemGroup>
+<!--    <ItemGroup>-->
+<!--      <Reference Include="Microsoft.AspNetCore.Components.Server">-->
+<!--        <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\8.0.13\Microsoft.AspNetCore.Components.Server.dll</HintPath>-->
+<!--      </Reference>-->
+<!--    </ItemGroup>-->
 
 </Project>

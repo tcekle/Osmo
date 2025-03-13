@@ -2,6 +2,7 @@
 @using Osmo.Common.Messages.Notification
 @using MassTransit
 @using Osmo.Common.Services
+@using Osmo.Common.Ui
 @using Osmo.Services
 @using Osmo.Components
 @using Osmo.Components.NavigationToolbars
@@ -15,6 +16,7 @@
 @inject GlobalNotificationService _globalNotificationService
 @inject GoldenLayoutService _goldenLayoutService
 @inject MainLayoutLeftToolbarService _MainLayoutLeftToolbarService
+@inject StatusBarService _statusBarService
 
 <PageTitle>Osmo</PageTitle>
 
@@ -37,8 +39,10 @@
 
     <MudDrawer ClipMode="DrawerClipMode.Always" Open="false" Elevation="1" Variant="@DrawerVariant.Mini" >
         <MudNavMenu>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(ConneXNavigator)))" >ConneX</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Castle" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(OsmoNavigationToolbar)))" >Osmo</MudNavLink>
+            <MudTooltip Text="ConneX" Arrow="true" Placement="Placement.Right">
+                <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(ConneXNavigator)))">ConneX</MudNavLink>
+            </MudTooltip>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Castle" OnClick="@(() => _MainLayoutLeftToolbarService.SwitchToolbar(typeof(OsmoNavigationToolbar)))">Osmo</MudNavLink>
         </MudNavMenu>
     </MudDrawer>
     
@@ -64,6 +68,25 @@
         @* <GoldenLayout @ref="_goldenLayout"/> *@
     </MudMainContent>
 </MudLayout>
+
+<MudAppBar Bottom Fixed Style="height: 25px;">
+    <MudText>Test</MudText>
+    <MudSpacer/>
+    
+    
+    @foreach (var rightStatusBarItem in _statusBarService.RightComponents)
+    {
+        <DynamicComponent Type="rightStatusBarItem" />
+    }
+    @* <MudAnimate Selector=".connex-sync-icon" Value="360" AnimationType="AnimationType.Rotate" Duration="5" Infinite="true" AnimationTiming="AnimationTiming.Linear" AnimationDirection="AnimationDirection.Reverse"/> *@
+    @* <div> *@
+    @*     <MudIconButton Class="connex-sync-icon" Icon="@Icons.Material.Filled.Sync" Color="Color.Inherit" Size="Size.Small" Title="ConneX synchronization running"/> *@
+    @* </div> *@
+    
+    <MudBadge Overlap="true" Dot="true" Color="Color.Primary" Visible>
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" Size="Size.Small" Title="Notifications"/>
+    </MudBadge>
+</MudAppBar>
 
 @code{
     private bool _drawerOpen = true;

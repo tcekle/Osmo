@@ -1,7 +1,10 @@
 ﻿@page "/connex/handler/{Id:int}"
 @using Microsoft.EntityFrameworkCore
+@using Osmo.ConneX.Consumers.Processors
 @using Osmo.ConneX.GraphQl
+@using Osmo.ConneX.Models.EventViewer
 @using Osmo.ConneX.Providers
+@using Osmo.ConneX.Ui.Components
 
 @inject IConneXClient _connexGraphql
 @inject IDbContextFactory<ConneXMetricsProviderContext> _connexMetricsProviderContextFactory
@@ -60,33 +63,49 @@
         </MudPaper>
         
         <MudPaper Class="p-4 my-2">
+            <MudText Typo="Typo.h4" class="mb-2">Events</MudText>
+            <MudText Typo="Typo.subtitle2" class="mb-2">Last 25 notable events</MudText>
             <MudTimeline Modifiers TimelinePosition="TimelinePosition.Start">
                 @foreach (var evt in _events)
                 {
-                    <MudTimelineItem>
-                        <ItemOpposite>
-                            <p>Test</p>
-                        </ItemOpposite>
+                    <MudTimelineItem Class="p2" Size="Size.Large">
+                        <ItemDot>
+                            <MudIcon Color="@evt.Color" Size="Size.Large" Icon="@evt.Icon"/>
+                        </ItemDot>
                         <ItemContent>
-                            <MudCard Outlined Class="p-2">
-                                @if (evt is BeginRunEvent beginRunEvent)
-                                {
-                                    <MudText Typo="Typo.h6">Begin job</MudText>
-                                    <MudText Typo="Typo.body2">Job Name: @beginRunEvent.TaskName</MudText>
-                                    <MudText Class="pt-4" Typo="Typo.caption">@evt.Timestamp.DateTime</MudText>
-                                }
+                            <MudCard Outlined>
+                                <MudExpansionPanels Outlined="false" Elevation="0">
+                                    <MudExpansionPanel>
+                                        <TitleContent>
+                                            <MudText Typo="Typo.h6">@evt.Title</MudText>
+                                            <MudText Class="pt-4 mud-text-secondary" Typo="Typo.caption">@evt.Timestamp.DateTime</MudText>
+                                        </TitleContent>
+                                        <ChildContent>
+                                            <MudText Typo="Typo.body2">@((MarkupString)evt.Message)</MudText>
+                                        </ChildContent>
 
-                                @if (evt is EndRunEvent endRunEvent)
-                                {
-                                    <MudText Typo="Typo.h6">End job</MudText>
-                                    <MudText Typo="Typo.body2">Reason: @endRunEvent.TerminationReason</MudText>
-                                    <MudText Class="pt-4" Typo="Typo.caption">@evt.Timestamp.DateTime</MudText>
-                                }
+                                    </MudExpansionPanel>
+                                </MudExpansionPanels>
                             </MudCard>
                         </ItemContent>
                     </MudTimelineItem>
                 }
             </MudTimeline>
+        </MudPaper>
+        
+        <MudPaper Class="my-2">
+            <MudExpansionPanels Outlined="false" Elevation="0">
+                <MudExpansionPanel Expanded="false">
+                    <TitleContent>
+                        <MudText Typo="Typo.h5">Advanced Event Viewer</MudText>
+                    </TitleContent>
+                    <ChildContent>
+                        <EventViewer Events="_eventViewerEvents" Style="background: white; height: 500px;"/>
+                    </ChildContent>
+                    
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+            
         </MudPaper>
     }
 }
@@ -101,6 +120,7 @@
     public int Id { get; set; }
     
     private List<HandlerEvent> _events = new List<HandlerEvent>();
+    private List<EventViewerEvent> _eventViewerEvents = new List<EventViewerEvent>();
     
 
     /// <summary>
@@ -132,25 +152,63 @@
     {
         await using var context = await _connexMetricsProviderContextFactory.CreateDbContextAsync();
 
-        var events = context.MqttMessages
-            .Where(m => (m.Topic.Contains("h700/beginrun")
-                                    || m.Topic.Contains("h700/endrun"))
-                                && m.Topic.Contains(_system.HostName.ToLower()));
+        // var events = context.MqttMessages
+        //     .Where(m => (m.Topic.Contains("h700/beginrun")
+        //                             || m.Topic.Contains("h700/endrun"))
+        //                         && m.Topic.Contains(_system.HostName.ToLower()));
+
+        // var events = context.HandlerEvents
+        //     .Where(e => e.HandlerName == _system.HostName.ToLower()
+        //                 || e.HandlerIdentifier == _system.Entity.EntityIdentifier)
+        //     .OrderByDescending(e => e.Timestamp)
+        //     .Take(25);
         
-        foreach (var evt in events)
-        {
-            if (evt.Topic.Contains("beginrun"))
+        _eventViewerEvents = await context.HandlerEvents
+            .Where(e => e.HandlerName == _system.HostName.ToLower()
+                        || e.HandlerIdentifier == _system.Entity.EntityIdentifier)
+            .OrderByDescending(e => e.Timestamp)
+            .Select(e => new EventViewerEvent
             {
-                var beginRunEvent = System.Text.Json.JsonSerializer.Deserialize<BeginRunEvent>(evt.PayloadAsString);
-                beginRunEvent.Timestamp = evt.Timestamp;
-                _events.Add(beginRunEvent);
+                Type = e.Type,
+                Title = e.Title,
+                Message = e.Message,
+                RawData = e.RawData,
+                Timestamp = e.Timestamp
+            }).ToListAsync();
+        
+        foreach (var evt in _eventViewerEvents.Take(25))
+        {
+            if (evt.Type == HandlerEventProcessor.SYSTEM_BEGIN_RUN)
+            {
+                _events.Add(new BeginRunEvent
+                {
+                    Title = "Begin job",
+                    Icon = Icons.Material.Filled.PlayCircleFilled,
+                    Message = evt.Message.Replace("\n", "<br>"),
+                    Timestamp = evt.Timestamp
+                });
+            }
+            
+            if (evt.Type == HandlerEventProcessor.SYSTEM_END_RUN)
+            {
+                _events.Add(new EndRunEvent
+                {
+                    Title = "End job",
+                    Icon = Icons.Material.Filled.StopCircle,
+                    Message = evt.Message.Replace("\n", "<br>"),
+                    Timestamp = evt.Timestamp
+                });
             }
 
-            if (evt.Topic.Contains("endrun"))
+            if (evt.Type == HandlerEventProcessor.USER_LOGIN)
             {
-                var endRunEvent = System.Text.Json.JsonSerializer.Deserialize<EndRunEvent>(evt.PayloadAsString);
-                endRunEvent.Timestamp = evt.Timestamp;
-                _events.Add(endRunEvent);
+                _events.Add(new UserLogin
+                {
+                    Title = "User login",
+                    Icon = Icons.Material.Filled.Person,
+                    Message = evt.Message.Replace("\n", "<br>"),
+                    Timestamp = evt.Timestamp
+                });
             }
         }
     }
@@ -160,7 +218,11 @@
     /// </summary>
     private record HandlerEvent
     {
+        public string Icon { get; set; }
+        public Color Color { get; set; } = Color.Primary;
         public DateTimeOffset Timestamp { get; set; }
+        public string Message { get; set; }
+        public string Title { get; set; }
     }
     
     /// <summary>
@@ -168,7 +230,7 @@
     /// </summary>
     private record EndRunEvent : HandlerEvent
     {
-        public string TerminationReason { get; init; }
+        // public string TerminationReason { get; init; }
     }
     
     /// <summary>
@@ -176,6 +238,8 @@
     /// </summary>
     private record BeginRunEvent : HandlerEvent
     {
-        public string TaskName { get; init; }
+        // public string TaskName { get; init; }
     }
+
+    private record UserLogin : HandlerEvent;
 }

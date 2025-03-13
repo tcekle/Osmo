@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Osmo.ConneX.Consumers.Processors;
 using System.Text.Json;
 
 namespace Osmo.ConneX.Consumers;
@@ -19,6 +20,8 @@ internal class MqttMessageConsumer : IConsumer<MqttMessage>, IConsumer<BulkMqttM
     private readonly ConneXRecordInjesterService _recordInjesterService;
     private readonly IDbContextFactory<ConneXMetricsProviderContext> _contextFactory;
     private readonly ILogger<MqttMessageConsumer> _logger;
+    private readonly HandlerEventProcessor _handlerEventProcessor;
+    private readonly SemaphoreSlim _semaphore = new(1);
 
     /// <summary>
     /// Creates a new instance of <see cref="MqttMessageConsumer"/>.
@@ -34,7 +37,10 @@ internal class MqttMessageConsumer : IConsumer<MqttMessage>, IConsumer<BulkMqttM
         _contextFactory = contextFactory;
         _logger = logger;
 
+        _handlerEventProcessor = new HandlerEventProcessor(_contextFactory);
+
         _router.RegisterRoute("connex/programmer/#", ProcessAuditRecord);
+        _router.RegisterRoute("+h700/#", _handlerEventProcessor.ProcessEvent);
     }
     
     /// <summary>
@@ -43,18 +49,28 @@ internal class MqttMessageConsumer : IConsumer<MqttMessage>, IConsumer<BulkMqttM
     /// <param name="context">The <see cref="ConsumeContext{T}"/> of type <see cref="MqttMessage"/>.</param>
     public async Task Consume(ConsumeContext<MqttMessage> context)
     {
-        await using var dbContext = await _contextFactory.CreateDbContextAsync(context.CancellationToken);
-
-        var message = await dbContext.MqttMessages.FirstOrDefaultAsync(x => x.Id == context.MessageId, context.CancellationToken);
-        if (message is not null)
+        try
         {
-            return;
+            await using var dbContext = await _contextFactory.CreateDbContextAsync(context.CancellationToken);
+
+            await _semaphore.WaitAsync();
+            var message = await dbContext.MqttMessages.FirstOrDefaultAsync(x => x.Id == context.MessageId, context.CancellationToken);
+            if (message is not null)
+            {
+                return;
+            }
+        
+            await dbContext.MqttMessages.AddAsync(context.Message, context.CancellationToken);
+            await dbContext.SaveChangesAsync(context.CancellationToken);
+
+        }
+        catch (Exception)
+        {
+            _semaphore.Release();
         }
         
-        await dbContext.MqttMessages.AddAsync(context.Message, context.CancellationToken);
-        await dbContext.SaveChangesAsync(context.CancellationToken);
-        
         await _router.RouteMessage(context.Message.Topic, context.Message);
+
     }
 
     /// <summary>

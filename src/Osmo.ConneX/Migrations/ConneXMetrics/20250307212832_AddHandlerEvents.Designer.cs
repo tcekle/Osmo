@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Osmo.ConneX.Providers;
@@ -11,9 +12,11 @@ using Osmo.ConneX.Providers;
 namespace Osmo.ConneX.Migrations.ConneXMetrics
 {
     [DbContext(typeof(ConneXMetricsProviderContext))]
-    partial class ConneXMetricsProviderContextModelSnapshot : ModelSnapshot
+    [Migration("20250307212832_AddHandlerEvents")]
+    partial class AddHandlerEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,96 +127,6 @@ namespace Osmo.ConneX.Migrations.ConneXMetrics
                     b.HasKey("Id");
 
                     b.ToTable("connex_handler_events");
-                });
-
-            modelBuilder.Entity("Osmo.ConneX.Models.HandlerStatistics", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
-                    b.Property<int>("DevicesFailedOn3DSystem")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_failed_on_3d_system");
-
-                    b.Property<int>("DevicesFailedOnLaser")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_failed_on_laser");
-
-                    b.Property<int>("DevicesFailedOnProgrammer")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_failed_on_programmer");
-
-                    b.Property<int>("DevicesFailedREST")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_failed_rest");
-
-                    b.Property<int>("DevicesFailedVision")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_failed_vision");
-
-                    b.Property<int>("DevicesPickedInput")
-                        .HasColumnType("integer")
-                        .HasColumnName("devices_picked_input");
-
-                    b.Property<double>("HandlerYield")
-                        .HasColumnType("double precision")
-                        .HasColumnName("handler_yield");
-
-                    b.Property<int>("JobAssistanceTime")
-                        .HasColumnType("integer")
-                        .HasColumnName("job_assistance_time");
-
-                    b.Property<DateTime>("JobCompletionEstimate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("job_completion_estimate");
-
-                    b.Property<int>("JobProcessingTime")
-                        .HasColumnType("integer")
-                        .HasColumnName("job_processing_time");
-
-                    b.Property<double>("ProgrammerYield")
-                        .HasColumnType("double precision")
-                        .HasColumnName("programmer_yield");
-
-                    b.Property<string>("RelatedHandlerId")
-                        .HasColumnType("text")
-                        .HasColumnName("related_handler_id");
-
-                    b.Property<Guid>("RelatedMessageId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("related_message_id");
-
-                    b.Property<string>("SessionId")
-                        .HasColumnType("text")
-                        .HasColumnName("session_id");
-
-                    b.Property<double>("SystemYield")
-                        .HasColumnType("double precision")
-                        .HasColumnName("system_yield");
-
-                    b.Property<int>("TotalFail")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_fail");
-
-                    b.Property<int>("TotalPass")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_pass");
-
-                    b.Property<int>("Uph")
-                        .HasColumnType("integer")
-                        .HasColumnName("uph");
-
-                    b.HasKey("Id", "TimeStamp");
-
-                    b.ToTable("handler_statistics");
                 });
 
             modelBuilder.Entity("Osmo.ConneX.Models.ProgrammingStatistic", b =>

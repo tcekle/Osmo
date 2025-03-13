@@ -16,7 +16,7 @@ public class OsmoDatabaseTests
 
         if (_osmoServiceFactory.DbContainer is null)
         {
-            Assert.Fail("DbContainer is null");;
+            Assert.Fail("DbContainer is null");
         }
         
         await _osmoServiceFactory.DbContainer.StartAsync();

@@ -29,6 +29,13 @@ internal class ConneXMetricsProviderContext : DbContext
     public DbSet<ConneXMetaData> ConneXMetaData { get; set; }
     
     /// <summary>
+    /// Gets or sets the ConneX events.
+    /// </summary>
+    public DbSet<HandlerEvent> HandlerEvents { get; set; }
+    
+    public DbSet<HandlerStatistics> HandlerStatistics { get; set; }
+    
+    /// <summary>
     /// Creates a new instance of the <see cref="ConneXMetricsProviderContext"/> class.
     /// Create a new migration like so:
     ///   dotnet ef migrations add MIGRATION_NAME --startup-project Osmo.ConneX.csproj --context ConneXMetricsProviderContext --output-dir Migrations/ConneXMetrics
@@ -71,5 +78,6 @@ internal class ConneXMetricsProviderContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ProgrammingStatistic>().HasKey(table => new { table.Id, table.TimeStamp });
+        modelBuilder.Entity<HandlerStatistics>().HasKey(table => new { table.Id, table.TimeStamp });
     }
 }

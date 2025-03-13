@@ -1,10 +1,12 @@
 ﻿using MassTransit;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Osmo.Common.Ui;
+using Osmo.ConneX.Ui.Components;
 
 namespace Osmo.ConneX.Extensions;
 
@@ -36,7 +38,8 @@ public static class ConneXPluginExtensions
         serviceCollection.AddSingleton<ConneXRecordInjesterService>();
         serviceCollection.AddHostedService(s => s.GetRequiredService<ConneXRecordInjesterService>());
         serviceCollection.AddHostedService<ConneXMqttService>();
-        serviceCollection.AddHostedService<ConneXSynchronization>();
+        serviceCollection.AddSingleton<ConneXSynchronization>();
+        serviceCollection.AddHostedService(s => s.GetRequiredService<ConneXSynchronization>());
 
         serviceCollection.AddScoped<TimeSeriesJavascriptInterop>();
 
@@ -51,18 +54,21 @@ public static class ConneXPluginExtensions
     /// Add ConneX root components to the circuit options.
     /// </summary>
     /// <param name="options">The circuit options to add the components to.</param>
-    public static void AddConneXRootComponents(this CircuitOptions options)
-    {
-        options.RootComponents.RegisterForJavaScript<ConneXAnalyzer>("connex-analyzer");
-        options.RootComponents.RegisterForJavaScript<ConneXDashboard>("connex-dashboard");
-        options.RootComponents.RegisterForJavaScript<ConneXHandler>("connex-handler");
-        options.RootComponents.RegisterForJavaScript<ConneXMetrics>("connex-metrics");
-        options.RootComponents.RegisterForJavaScript<ConneXMessageList>("connex-message-list");
-        options.RootComponents.RegisterForJavaScript<RecordIngester>("connex-record-ingester");
-        options.RootComponents.RegisterForJavaScript<DeviceList>("connex-device-list");
-        options.RootComponents.RegisterForJavaScript<JobList>("connex-job-list");
-        options.RootComponents.RegisterForJavaScript<DeviceDetails>("connex-device-details");
-        options.RootComponents.RegisterForJavaScript<JobDetails>("connex-job-details");
+    public static IEnumerable<LayoutComponentRegistration> GetConneXRootComponents()
+    {       
+        return 
+        [
+            new() { ComponentType = typeof(ConneXAnalyzer), ComponentIdentifier = "connex-analyzer" },
+            new() { ComponentType = typeof(ConneXDashboard), ComponentIdentifier = "connex-dashboard" },
+            new() { ComponentType = typeof(ConneXHandler), ComponentIdentifier = "connex-handler" },
+            new() { ComponentType = typeof(ConneXMetrics), ComponentIdentifier = "connex-metrics" },
+            new() { ComponentType = typeof(ConneXMessageList), ComponentIdentifier = "connex-message-list" },
+            new() { ComponentType = typeof(RecordIngester), ComponentIdentifier = "connex-record-ingester" },
+            new() { ComponentType = typeof(DeviceList), ComponentIdentifier = "connex-device-list" },
+            new() { ComponentType = typeof(JobList), ComponentIdentifier = "connex-job-list" },
+            new() { ComponentType = typeof(DeviceDetails), ComponentIdentifier = "connex-device-details" },
+            new() { ComponentType = typeof(JobDetails), ComponentIdentifier = "connex-job-details" }
+        ];
     }
     
     /// <summary>
@@ -72,11 +78,14 @@ public static class ConneXPluginExtensions
     public static async Task ConfigureConneXMetricsDatabase(this IApplicationBuilder applicationBuilder)
     {
         var dbFactory = applicationBuilder.ApplicationServices.GetRequiredService<IDbContextFactory<ConneXMetricsProviderContext>>();
+        var statusBarService = applicationBuilder.ApplicationServices.GetRequiredService<IStatusBar>();
 
         await using var connexMetricsDb = await dbFactory.CreateDbContextAsync();
      
         await connexMetricsDb.Database.MigrateAsync();
         connexMetricsDb.ApplyHypertables();
+        
+        statusBarService.AddRightStatusBarComponent(typeof(ConneXSyncStatusIcon));
     }
 
     /// <summary>

@@ -1,0 +1,104 @@
+﻿@using MudExtensions
+@using Osmo.ConneX.Services
+
+@implements IDisposable
+
+@inject ConneXSynchronization _connexSynchronizationService
+
+<MudTooltip Text="ConneX: Connected" Placement="Placement.Top">
+    <MudIconButton Icon="@serverIconString" Color="Color.Success" Size="Size.Small" />    
+</MudTooltip>
+
+<MudAnimate @bind-Paused="_connexSyncPaused" Selector=".connex-sync-icon" Value="360" AnimationType="AnimationType.Rotate" Duration="5" Infinite="true" AnimationTiming="AnimationTiming.Linear" AnimationDirection="AnimationDirection.Reverse"/>
+<MudTooltip Placement="Placement.Top">
+    <ChildContent>
+        <MudIconButton Class="connex-sync-icon" Icon="@Icons.Material.Filled.Sync" Color="Color.Inherit" Size="Size.Small"/>
+    </ChildContent>
+    <TooltipContent>
+        <MudText Typo="Typo.caption">@((MarkupString)_connexSynchronizationService.StatusMessage.Replace("\n", "<br>"))</MudText>
+    </TooltipContent>
+</MudTooltip>
+
+@code {
+
+    private const string serverIconString = @"<svg xmlns=""http://www.w3.org/2000/svg"" viewBox=""0 0 512 512""><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d=""M64 32C28.7 32 0 60.7 0 96l0 64c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-64c0-35.3-28.7-64-64-64L64 32zm280 72a24 24 0 1 1 0 48 24 24 0 1 1 0-48zm48 24a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zM64 288c-35.3 0-64 28.7-64 64l0 64c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-64c0-35.3-28.7-64-64-64L64 288zm280 72a24 24 0 1 1 0 48 24 24 0 1 1 0-48zm56 24a24 24 0 1 1 48 0 24 24 0 1 1 -48 0z""/></svg>";
+
+    private bool _connexSyncPaused = true;
+
+    private string _conneXSyncText = string.Empty;
+    // private MudAnimate _connexSyncAnimation;
+
+    /// <summary>
+    /// Method invoked after each time the component has been rendered interactively and the UI has finished
+    /// updating (for example, after elements have been added to the browser DOM). Any <see cref="T:Microsoft.AspNetCore.Components.ElementReference" />
+    /// fields will be populated by the time this runs.
+    /// This method is not invoked during prerendering or server-side rendering, because those processes
+    /// are not attached to any live browser DOM and are already complete before the DOM is updated.
+    /// Note that the component does not automatically re-render after the completion of any returned <see cref="T:System.Threading.Tasks.Task" />,
+    /// because that would cause an infinite render loop.
+    /// </summary>
+    /// <param name="firstRender">
+    /// Set to <c>true</c> if this is the first time <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> has been invoked
+    /// on this component instance; otherwise <c>false</c>.
+    /// </param>
+    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
+    /// <remarks>
+    /// The <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRender(System.Boolean)" /> and <see cref="M:Microsoft.AspNetCore.Components.ComponentBase.OnAfterRenderAsync(System.Boolean)" /> lifecycle methods
+    /// are useful for performing interop, or interacting with values received from <c>@ref</c>.
+    /// Use the <paramref name="firstRender" /> parameter to ensure that initialization work is only performed
+    /// once.
+    /// </remarks>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+        
+        _connexSyncPaused = !_connexSynchronizationService.Synchronizing;
+        UpdateSyncStatus();
+        
+        // _connexSyncAnimation.Paused = true;
+        
+        _connexSynchronizationService.SynchronizationStarted += SynchronizationStarted;
+        _connexSynchronizationService.SynchronizationEnded += SynchronizationEnded;
+
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private void UpdateSyncStatus()
+    {
+        if (_connexSyncPaused)
+        {
+            _conneXSyncText = "ConneX synchronization paused";
+        }
+        else
+        {
+            _conneXSyncText = "ConneX synchronization in progress";
+        }
+    }
+
+    private async Task SynchronizationEnded()
+    {
+        _connexSyncPaused = true;
+        UpdateSyncStatus();
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SynchronizationStarted()
+    {
+        _connexSyncPaused = false;
+        UpdateSyncStatus();
+        
+        await InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+    public void Dispose()
+    {
+        _connexSynchronizationService.SynchronizationStarted -= SynchronizationStarted;
+        _connexSynchronizationService.SynchronizationEnded -= SynchronizationEnded;
+    }
+
+}

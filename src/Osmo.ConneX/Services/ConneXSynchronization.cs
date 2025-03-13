@@ -26,6 +26,12 @@ internal class ConneXSynchronization : IHostedService
     
     private Task _connexSyncWorker;
     private CancellationTokenSource _cancellationTokenSource;
+    
+    public Func<Task> SynchronizationStarted { get; set; }
+    public Func<Task> SynchronizationEnded { get; set; }
+    
+    public bool Synchronizing { get; private set; }
+    public string StatusMessage { get; private set; } = "ConneX synchronization paused";
 
     /// <summary>
     /// Creates a new instance of the <see cref="ConneXSynchronization"/> class.
@@ -81,13 +87,20 @@ internal class ConneXSynchronization : IHostedService
         {
             try
             {
-                await Task.Delay(TimeSpan.FromMinutes(5));
+                // await Task.Delay(TimeSpan.FromMinutes(5));
+                await Task.Delay(30_000);
+                Synchronizing = true;
+                await (SynchronizationStarted?.Invoke() ?? Task.CompletedTask);
                 await IngestAllRecords();
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error syncing with ConneX");
+                
             }
+
+            Synchronizing = false;
+            await (SynchronizationEnded?.Invoke() ?? Task.CompletedTask);
         }
     }
 
@@ -110,8 +123,12 @@ internal class ConneXSynchronization : IHostedService
         }
         
         int skip = 0;
-        int take = 50;
+        int take = 20;
         bool hasNextPage = true;
+        
+        var messageCount = await _connexGraphql.GetAllMessageCount.ExecuteAsync(lastMessageTimestampParsed);
+        int recordCount = messageCount.Data.Messages.TotalCount;
+        int processedCount = 0;
 
         while (hasNextPage)
         {
@@ -127,6 +144,9 @@ internal class ConneXSynchronization : IHostedService
             
             hasNextPage = pageResult.Data?.Messages?.PageInfo?.HasNextPage ?? false;
             skip += take;
+            processedCount += pageResult.Data?.Messages?.Items?.Count ?? 0;
+            
+            UpdateProgress(processedCount, recordCount);
         }
     }
 
@@ -181,5 +201,13 @@ internal class ConneXSynchronization : IHostedService
         }
         
         await dbContext.SaveChangesAsync(_cancellationTokenSource.Token);
+    }
+
+    private void UpdateProgress(int currentCount, int total)
+    {
+        StatusMessage = $"""
+                        Synchronizing with ConneX...
+                        {currentCount} / {total} records processed
+                        """;
     }
 }

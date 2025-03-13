@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Osmo.Common.Extensions;
 using Osmo.Common.Services;
+using Osmo.Common.Ui;
 using Osmo.Components;
 using Osmo.ConneX.Extensions;
 using Osmo.ConneX.Ui;
@@ -28,7 +29,7 @@ public static class OsmoServicesExtensions
         {
             // options.RootComponents.RegisterForJavaScript<Counter>("counter");
             options.AddBuiltInComponents();
-            options.AddConneXRootComponents();
+            options.AddRootComponets(ConneXPluginExtensions.GetConneXRootComponents());
         });
 
         services.AddSingleton<WeatherForecastService>();
@@ -70,6 +71,8 @@ public static class OsmoServicesExtensions
         services.AddSingleton<GlobalNotificationService>();
         services.AddScoped<GoldenLayoutService>();
         services.AddScoped<MainLayoutLeftToolbarService>();
+        services.AddSingleton<StatusBarService>();
+        services.AddSingleton<IStatusBar>(s => s.GetRequiredService<StatusBarService>());
     }
 
     public static async Task ConfigureOsmoServices(this IApplicationBuilder applicationBuilder)
@@ -81,5 +84,13 @@ public static class OsmoServicesExtensions
     private static void AddBuiltInComponents(this CircuitOptions options)
     {
         // options.RootComponents.RegisterForJavaScript<DeviceList>("osmo-device-list");
+    }
+
+    private static void AddRootComponets(this CircuitOptions options, IEnumerable<LayoutComponentRegistration> componentRegistrations)
+    {
+        foreach (var componentRegistration in componentRegistrations)
+        {
+            options.RootComponents.RegisterForJavaScript(componentRegistration.ComponentType, componentRegistration.ComponentIdentifier);
+        }
     }
 }
