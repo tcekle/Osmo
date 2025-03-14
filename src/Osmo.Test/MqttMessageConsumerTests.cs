@@ -2,10 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Osmo.Common.Database.Options;
+using Osmo.Common.Messages;
 using Osmo.ConneX;
 using Osmo.ConneX.Consumers;
 using Osmo.ConneX.Consumers.Processors;
 using Osmo.ConneX.Providers;
+using System.Threading.Channels;
 
 namespace Osmo.Test;
 
@@ -26,11 +28,6 @@ public class MqttMessageConsumerTests
         
         await using var dbContext = conneXMetricsProviderContextFactory.CreateDbContext();
         
-        // var query = dbContext.MqttMessages
-        //     .Where(m => m.Topic.Contains("h700"))
-        //     .OrderBy(m => m.Timestamp)
-        //     .AsQueryable();
-        
         var lastEntry = await dbContext.HandlerEvents
             .OrderByDescending(m => m.Timestamp)
             .FirstOrDefaultAsync();
@@ -45,19 +42,44 @@ public class MqttMessageConsumerTests
         int count = await query.CountAsync();
         int progress = 0;
 
+        List<Task> workerTasks = new List<Task>();
+        CancellationTokenSource cts = new CancellationTokenSource();
+        var channel = Channel.CreateBounded<MqttMessage>(100);
+        for (int i = 0; i < 8; i++)
+        {
+            workerTasks.Add(Task.Run(async () => await ProcessEventWorker(cts.Token, handlerEventProcessor, channel), cts.Token));
+        }
+
         await foreach (var message in query.AsAsyncEnumerable())
         {
+            await channel.Writer.WriteAsync(message, cts.Token);
+            progress++;
+        }
+
+        while (channel.Reader.Count > 0)
+        {
+            await Task.Delay(100);
+        }
+        
+        await cts.CancelAsync();
+        await Task.WhenAll(workerTasks);
+    }
+
+    private static async Task ProcessEventWorker(CancellationToken cancellationToken, HandlerEventProcessor handlerEventProcessor, Channel<MqttMessage> channel)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            MqttMessage? message = null;
             try
             {
+                message = await channel.Reader.ReadAsync(cancellationToken);
                 await handlerEventProcessor.ProcessEvent(message);
-                progress++;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Console.WriteLine(message.PayloadAsString);
+                Console.WriteLine(message?.PayloadAsString);
             }
-
         }
     }
 }

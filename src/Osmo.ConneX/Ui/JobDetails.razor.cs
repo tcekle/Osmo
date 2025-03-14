@@ -30,20 +30,6 @@ public partial class JobDetails
     public string JobId { get; set; }
 
     /// <summary>
-    /// Method invoked when the component is ready to start, having received its
-    /// initial parameters from its parent in the render tree.
-    /// Override this method if you will perform an asynchronous operation and
-    /// want the component to refresh when that operation is completed.
-    /// </summary>
-    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
-    protected override async Task OnInitializedAsync()
-    {
-        await using var osmoDb = await OsmoContextFactory.CreateDbContextAsync();
-        
-        _job = await osmoDb.Jobs.FirstOrDefaultAsync(j => j.Id == Guid.Parse(JobId));
-    }
-
-    /// <summary>
     /// Method invoked after each time the component has been rendered interactively and the UI has finished
     /// updating (for example, after elements have been added to the browser DOM). Any <see cref="T:Microsoft.AspNetCore.Components.ElementReference" />
     /// fields will be populated by the time this runs.
@@ -65,10 +51,14 @@ public partial class JobDetails
     /// </remarks>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _job == null)
+        if (!firstRender)
         {
             return;
         }
+        
+        await using var osmoDb = await OsmoContextFactory.CreateDbContextAsync();
+        
+        _job = await osmoDb.Jobs.FirstOrDefaultAsync(j => j.Id == Guid.Parse(JobId));
         
         await using var connexDb = await ConnexMetricsProviderContextFactory.CreateDbContextAsync();
         _jobStats = await connexDb.Database.GetDbConnection().QuerySingleAsync<JobStats>(

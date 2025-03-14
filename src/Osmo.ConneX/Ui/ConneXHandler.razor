@@ -1,13 +1,5 @@
 ﻿@page "/connex/handler/{Id:int}"
-@using Microsoft.EntityFrameworkCore
-@using Osmo.ConneX.Consumers.Processors
-@using Osmo.ConneX.GraphQl
-@using Osmo.ConneX.Models.EventViewer
-@using Osmo.ConneX.Providers
 @using Osmo.ConneX.Ui.Components
-
-@inject IConneXClient _connexGraphql
-@inject IDbContextFactory<ConneXMetricsProviderContext> _connexMetricsProviderContextFactory
 
 @if (!_loading)
 {
@@ -18,7 +10,6 @@
     else
     {
         <MudText Typo="Typo.h2" class="mb-2">@_system.Entity.EntityName</MudText>
-        
         <MudPaper class="p-4 my-2">
             <MudText Typo="Typo.h4" class="mb-2">System information</MudText>
             
@@ -55,16 +46,14 @@
                             <PropertyColumn Property="x => x.Entity.EntityIdentifier" Title="Identifier"></PropertyColumn>
                             <PropertyColumn Property="x => x.AdapterId" Title="Adapter ID"></PropertyColumn>
                         </Columns>
-                        
                     </MudDataGrid>
-                    
                 </ChildRowContent>
             </MudDataGrid>
         </MudPaper>
         
         <MudPaper Class="p-4 my-2">
             <MudText Typo="Typo.h4" class="mb-2">Events</MudText>
-            <MudText Typo="Typo.subtitle2" class="mb-2">Last 25 notable events</MudText>
+            <MudText Typo="Typo.subtitle2" class="mb-2">Last 25 notable events (1 Month)</MudText>
             <MudTimeline Modifiers TimelinePosition="TimelinePosition.Start">
                 @foreach (var evt in _events)
                 {
@@ -83,7 +72,6 @@
                                         <ChildContent>
                                             <MudText Typo="Typo.body2">@((MarkupString)evt.Message)</MudText>
                                         </ChildContent>
-
                                     </MudExpansionPanel>
                                 </MudExpansionPanels>
                             </MudCard>
@@ -97,149 +85,13 @@
             <MudExpansionPanels Outlined="false" Elevation="0">
                 <MudExpansionPanel Expanded="false">
                     <TitleContent>
-                        <MudText Typo="Typo.h5">Advanced Event Viewer</MudText>
+                        <MudText Typo="Typo.h5">Advanced Event Viewer (1 Month)</MudText>
                     </TitleContent>
                     <ChildContent>
                         <EventViewer Events="_eventViewerEvents" Style="background: white; height: 500px;"/>
                     </ChildContent>
-                    
                 </MudExpansionPanel>
             </MudExpansionPanels>
-            
         </MudPaper>
     }
-}
-
-@code
-{
-    private bool _loading = true;
-    private bool _systemFound = false;
-    private IGetSystem_System _system;
-
-    [Parameter]
-    public int Id { get; set; }
-    
-    private List<HandlerEvent> _events = new List<HandlerEvent>();
-    private List<EventViewerEvent> _eventViewerEvents = new List<EventViewerEvent>();
-    
-
-    /// <summary>
-    /// Method invoked when the component is ready to start, having received its
-    /// initial parameters from its parent in the render tree.
-    /// Override this method if you will perform an asynchronous operation and
-    /// want the component to refresh when that operation is completed.
-    /// </summary>
-    /// <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing any asynchronous operation.</returns>
-    protected override async Task OnInitializedAsync()
-    {
-        var handler = await _connexGraphql.GetSystem.ExecuteAsync(Id);
-        _system = handler.Data.System;
-
-        _systemFound = _system != null;
-
-        if (_systemFound)
-        {
-            await GetHandlerEvents();
-        }
-        
-        _loading = false;
-    }
-
-    /// <summary>
-    /// Gets the handler events from ConneX.
-    /// </summary>
-    private async Task GetHandlerEvents()
-    {
-        await using var context = await _connexMetricsProviderContextFactory.CreateDbContextAsync();
-
-        // var events = context.MqttMessages
-        //     .Where(m => (m.Topic.Contains("h700/beginrun")
-        //                             || m.Topic.Contains("h700/endrun"))
-        //                         && m.Topic.Contains(_system.HostName.ToLower()));
-
-        // var events = context.HandlerEvents
-        //     .Where(e => e.HandlerName == _system.HostName.ToLower()
-        //                 || e.HandlerIdentifier == _system.Entity.EntityIdentifier)
-        //     .OrderByDescending(e => e.Timestamp)
-        //     .Take(25);
-        
-        _eventViewerEvents = await context.HandlerEvents
-            .Where(e => e.HandlerName == _system.HostName.ToLower()
-                        || e.HandlerIdentifier == _system.Entity.EntityIdentifier)
-            .OrderByDescending(e => e.Timestamp)
-            .Select(e => new EventViewerEvent
-            {
-                Type = e.Type,
-                Title = e.Title,
-                Message = e.Message,
-                RawData = e.RawData,
-                Timestamp = e.Timestamp
-            }).ToListAsync();
-        
-        foreach (var evt in _eventViewerEvents.Take(25))
-        {
-            if (evt.Type == HandlerEventProcessor.SYSTEM_BEGIN_RUN)
-            {
-                _events.Add(new BeginRunEvent
-                {
-                    Title = "Begin job",
-                    Icon = Icons.Material.Filled.PlayCircleFilled,
-                    Message = evt.Message.Replace("\n", "<br>"),
-                    Timestamp = evt.Timestamp
-                });
-            }
-            
-            if (evt.Type == HandlerEventProcessor.SYSTEM_END_RUN)
-            {
-                _events.Add(new EndRunEvent
-                {
-                    Title = "End job",
-                    Icon = Icons.Material.Filled.StopCircle,
-                    Message = evt.Message.Replace("\n", "<br>"),
-                    Timestamp = evt.Timestamp
-                });
-            }
-
-            if (evt.Type == HandlerEventProcessor.USER_LOGIN)
-            {
-                _events.Add(new UserLogin
-                {
-                    Title = "User login",
-                    Icon = Icons.Material.Filled.Person,
-                    Message = evt.Message.Replace("\n", "<br>"),
-                    Timestamp = evt.Timestamp
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// Base class for all handler events.
-    /// </summary>
-    private record HandlerEvent
-    {
-        public string Icon { get; set; }
-        public Color Color { get; set; } = Color.Primary;
-        public DateTimeOffset Timestamp { get; set; }
-        public string Message { get; set; }
-        public string Title { get; set; }
-    }
-    
-    /// <summary>
-    /// End run event.
-    /// </summary>
-    private record EndRunEvent : HandlerEvent
-    {
-        // public string TerminationReason { get; init; }
-    }
-    
-    /// <summary>
-    /// Begin run event.
-    /// </summary>
-    private record BeginRunEvent : HandlerEvent
-    {
-        // public string TaskName { get; init; }
-    }
-
-    private record UserLogin : HandlerEvent;
 }
