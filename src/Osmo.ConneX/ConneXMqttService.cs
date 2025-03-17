@@ -70,7 +70,7 @@ internal class ConneXMqttService : IHostedService
     /// Message received handler.
     /// </summary>
     /// <param name="arg">The MQTT application message received event arguments.</param>
-    private async Task MqttClientOnApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs arg)
+    private Task MqttClientOnApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs arg)
     {
         if (_applicationMessages.Count >= 100)
         {
@@ -78,12 +78,14 @@ internal class ConneXMqttService : IHostedService
         }
         
         _applicationMessages.Add(arg.ApplicationMessage);
-        
-        await _massTransitBus.Publish(new NotificationMessage
-        {
-            Title = arg.ApplicationMessage.Topic,
-            Body = arg.ApplicationMessage.ConvertPayloadToString(),
-            Level = NotificationLevel.Information
-        });
+
+        return Task.CompletedTask;
+
+        // await _massTransitBus.Publish(new NotificationMessage
+        // {
+        //     Title = arg.ApplicationMessage.Topic,
+        //     Body = arg.ApplicationMessage.ConvertPayloadToString(),
+        //     Level = NotificationLevel.Information
+        // });
     }
 }

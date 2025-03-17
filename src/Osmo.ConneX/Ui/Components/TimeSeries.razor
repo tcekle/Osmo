@@ -4,7 +4,7 @@
 @inject IJSRuntime _jsRuntime
 
 <div class="@Class">
-    <div id="@_timeseriesChartId"></div>    
+    <div id="@_timeseriesChartId" style="filter: invert(90%) hue-rotate(180deg);"></div>    
 </div>
 
 
@@ -100,6 +100,9 @@
         
         [JsonPropertyName("line")]
         public Line Line { get; set; } = new();
+        
+        [JsonPropertyName("connectgaps")]
+        public bool ConnectGaps { get; set; } = false;
     }
     
 public class TimeSeriesLayout
