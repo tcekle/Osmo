@@ -57,7 +57,7 @@ public partial class ConneXHandler
         await using var context = await ConnexMetricsProviderContextFactory.CreateDbContextAsync();
         
         _eventViewerEvents = await context.HandlerEvents
-            .Where(e => e.Timestamp > DateTime.UtcNow.AddMonths(-1)
+            .Where(e => e.Timestamp > DateTime.UtcNow.AddMonths(-100)
                 && (e.HandlerName == _system.HostName.ToLower() || e.HandlerIdentifier == _system.Entity.EntityIdentifier))
             .OrderByDescending(e => e.Timestamp)
             .Select(e => new EventViewerEvent

@@ -8,7 +8,7 @@ public class ConneXAuditEntry
 {
     public DateTime TimeStamp { get; set; }
     public Programmer Programmer { get; set; }
-    public Job Job { get; set; }
+    public RecordJob Job { get; set; }
     public PartDetail PartDetail { get; set; }
     // public HandlerInfo HandlerInfo { get; set; }
     // public object SerialData { get; set; } // Assuming it can be null
@@ -21,23 +21,23 @@ public class Programmer
     public string SerialNumber { get; set; }
     public string SystemVersion { get; set; }
     public string ProgrammerIP { get; set; }
-    // public Adapter Adapter { get; set; }
+    public Adapter Adapter { get; set; }
 }
 
 public class Adapter
 {
     public string AdapterId { get; set; }
     public string AdapterSerialNumber { get; set; }
-    public int CleanCount { get; set; }
-    public int LifetimeActuationCount { get; set; }
-    public int LifetimeContinuityFailCount { get; set; }
-    public int LifetimeFailCount { get; set; }
-    public int LifetimePassCount { get; set; }
-    public int SocketIndex { get; set; }
+    public string CleanCount { get; set; }
+    public string LifetimeActuationCount { get; set; }
+    public string LifetimeContinuityFailCount { get; set; }
+    public string LifetimeFailCount { get; set; }
+    public string LifetimePassCount { get; set; }
+    public string SocketIndex { get; set; }
     public string AdapterState { get; set; }
 }
 
-public class Job
+public class RecordJob
 {
     public string AlgorithmId { get; set; }
     public Guid JobId { get; set; }

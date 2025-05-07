@@ -3,7 +3,7 @@
 namespace Osmo.ConneX.Models;
 
 
-internal abstract class ConneXEvent
+public abstract class ConneXEvent
 {
     [Column("id")]
     public int Id { get; set; }

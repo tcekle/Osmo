@@ -33,6 +33,8 @@ internal class ConneXMetricsProviderContext : DbContext
     /// </summary>
     public DbSet<HandlerEvent> HandlerEvents { get; set; }
     
+    public DbSet<JobEvent> JobEvents { get; set; }
+    
     public DbSet<HandlerStatistics> HandlerStatistics { get; set; }
     
     /// <summary>

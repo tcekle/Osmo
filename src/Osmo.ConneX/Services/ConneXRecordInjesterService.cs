@@ -76,7 +76,7 @@ internal class ConneXRecordInjesterService : IHostedService
         }
     }
     
-    private async Task ProcessRecord(ConneXAuditEntry entry)
+    internal async Task ProcessRecord(ConneXAuditEntry entry)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         

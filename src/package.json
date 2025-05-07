@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "angular-plotly.js": "^6.0.0",
+    "plotly.js": "^3.0.1",
+    "plotly.js-dist-min": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/plotly.js-dist-min": "^2.3.4"
+  }
+}

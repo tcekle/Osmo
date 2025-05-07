@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Osmo.ConneX.Models;
 using Osmo.ConneX.Providers;
 using Osmo.ConneX.Ui.Components;
 using Osmo.Database;
@@ -141,9 +142,4 @@ public partial class JobDetails
 
         await InvokeAsync(StateHasChanged);
     }
-
-    private record JobStats(long total_jobs, long total_success, long total_failures);
-    private record ProgrammingResultCount(int code, string code_name, long occurrences);
-    
-    private record ProgrammingTimes(DateTime bucket, decimal avg_program_duration, decimal avg_verify_duration, decimal avg_blank_check_duration, decimal avg_erase_duration, decimal avg_overhead);
 }

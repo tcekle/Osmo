@@ -1,12 +1,16 @@
-﻿using MassTransit;
+﻿using HotChocolate.AspNetCore;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Osmo.Common.Ui;
+using Osmo.ConneX.GraphQl.Queries;
 using Osmo.ConneX.Ui.Components;
+using Osmo.Database.Extensions;
 
 namespace Osmo.ConneX.Extensions;
 
@@ -48,6 +52,20 @@ public static class ConneXPluginExtensions
                 client => client.BaseAddress = new Uri($"http://{options.ConneXHost.HostName}:5001/graphql"));
         
         serviceCollection.AddDbContextFactory<ConneXMetricsProviderContext, OsmoConnexMetricsProviderContextFactory>();
+        
+        var graphqlBuilder = serviceCollection
+            .AddGraphQLServer("Default")
+            .AddQueryType(d => d.Name(OsmoDatabaseExtensions.ROOT_QUERY_NAME));
+            
+        graphqlBuilder.AddOsmoGraphQL();
+        
+        graphqlBuilder
+            .AddTypeExtension<JobStatistics>()
+            .AddTypeExtension<RecordsQuery>()
+            .AddPagingArguments()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections();
     }
     
     /// <summary>
@@ -97,4 +115,12 @@ public static class ConneXPluginExtensions
         configurator.AddConsumer<MqttMessageConsumer>();
         configurator.AddConsumers(typeof(ConneXPluginExtensions).Assembly);
     }
+    public static void UseGraphQlEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapGraphQL("/graphql", "Default").WithOptions(new GraphQLServerOptions()
+        {
+            Tool = { Title = "GraphQL explorer", GraphQLEndpoint = "/graphql" }
+        });
+    }
+    
 }
