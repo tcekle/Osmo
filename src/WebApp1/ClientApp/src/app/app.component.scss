@@ -1,0 +1,30 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-side-menu {
+  width: 250px;
+  min-width: 200px;
+  transition: width 0.3s ease;
+  overflow: hidden;
+
+  &.collapsed {
+    width: 50px;
+    min-width: 0;
+    border: none;
+  }
+}
+
+.app-main-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}

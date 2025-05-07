@@ -1,0 +1,24 @@
+/* You can add global styles to this file, and also import other style files */
+@import "primeicons/primeicons.css";
+
+@import "tailwindcss";
+@plugin "tailwindcss-primeui";
+
+
+
+/*.app-top-toolbar {*/
+/*  border: none !important;*/
+/*  box-shadow: none !important;*/
+/*  position: fixed;*/
+/*  height: 4rem;*/
+/*  z-index: 997;*/
+/*  left: 0;*/
+/*  top: 0;*/
+/*  width: 100%;*/
+/*  padding: 0 2rem;*/
+/*  background-color: var(--surface-card);*/
+/*  transition: left var(--layout-section-transition-duration);*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*}*/
+

@@ -1,0 +1,41 @@
+<p-button
+  label="Back to systems"
+  icon="pi pi-arrow-left"
+  size="small"
+  class="mb-4"
+  [link]="true"
+  [routerLink]="['/w']"
+></p-button>
+
+<p-card *ngIf="system" class="shadow-2 border-round p-4 surface-card max-w-4xl mx-auto mt-6">
+  <ng-template pTemplate="header">
+    <div class="text-3xl font-medium text-color mb-3 p-3">{{ system.entity.entityName}}</div>
+  </ng-template>
+
+  <div class="text-muted-color mb-5">
+    System details
+  </div>
+
+  <ul class="list-none p-0 m-0 border-t border-surface-300 divide-y divide-surface-200">
+    <!-- Name -->
+    <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-surface-ground">
+      <div class="text-muted-color sm:w-1/4 font-medium">Host Name</div>
+      <div class="text-color sm:w-3/4">{{ system.hostName }}</div>
+    </li>
+
+    <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2">
+      <div class="text-muted-color sm:w-1/4 font-medium">IP Address</div>
+      <div class="text-color sm:w-3/4">{{ system.ipAddress }}</div>
+    </li>
+
+    <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-surface-ground">
+      <div class="text-muted-color sm:w-1/4 font-medium">Machine Factory</div>
+      <div class="text-color sm:w-3/4">{{ system.machineFactory }}</div>
+    </li>
+
+    <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-surface-card">
+      <div class="text-muted-color sm:w-1/4 font-medium">Handler Type</div>
+      <div class="text-color sm:w-3/4">{{ system.handlerType }}</div>
+    </li>
+  </ul>
+</p-card>

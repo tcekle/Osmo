@@ -1,0 +1,12 @@
+<p-breadcrumb class="max-w-full" [model]="breadcrumbs" [home]="homeItem">
+  <ng-template #item let-item>
+    <ng-container *ngIf="item.url; else plainText">
+      <a [routerLink]="item.url">
+        <span class="text-color">{{ item.label }}</span>
+      </a>
+    </ng-container>
+    <ng-template #plainText>
+      <span class="text-color">{{ item.label }}</span>
+    </ng-template>
+  </ng-template>
+</p-breadcrumb>

@@ -1,0 +1,108 @@
+<div class="pricing-body py-8 md:px-6 lg:px-8">
+  <div class="text-foreground font-bold text-4xl lg:text-6xl mb-4 text-center">
+    Pricing Plans
+  </div>
+  <div class="text-muted-foreground text-lg lg:text-xl mb-6 text-center leading-relaxed">
+    ConneX Cloud introduces flexible licensing designed to match customer size, usage patterns, and growth.
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+    <div *ngFor="let plan of plans">
+      <div class="shadow-sm p-6 rounded-2xl flex flex-col h-full bg-card text-card-foreground border border-border">
+        <div class="font-medium text-xl mb-2">{{ plan.name }}</div>
+        <div class="text-muted-foreground">{{ plan.description }}</div>
+        <hr class="my-4" />
+
+        <div class="flex items-center mb-4">
+          <span class="font-bold text-2xl">${{ plan.price }}</span>
+          <span class="ml-2 font-medium text-muted-foreground">per month</span>
+        </div>
+
+        <ul class="flex-grow mb-4 space-y-3">
+          <li *ngFor="let feature of plan.features" class="flex items-center">
+            <i class="pi pi-check-circle text-green-500 mr-2"></i>
+            <span>{{ feature }}</span>
+          </li>
+        </ul>
+
+        <button
+          severity="secondary"
+          pButton
+          pRipple
+          [label]="plan.buyButtonLabel"
+          class="w-full mt-auto"
+          [class.p-button-outlined]="plan.outlined"
+        ></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="overflow-auto rounded-xl shadow-sm border border-gray-200">
+  <table class="min-w-full table-auto text-left text-sm text-gray-700">
+    <thead class="bg-gray-50 text-gray-900">
+    <tr>
+      <th class="p-4 font-semibold">Features</th>
+      <th class="p-4 text-center font-semibold">Free<br><span class="text-gray-500 font-normal">$0/mo</span></th>
+      <th class="p-4 text-center font-semibold">Premium<br><span class="text-gray-500 font-normal">$199/mo</span></th>
+    </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+    <tr>
+      <td class="p-4 font-medium">View connected systems</td>
+      <td class="text-center"><i class="pi pi-check text-green-500"></i></td>
+      <td class="text-center"><i class="pi pi-check text-green-500"></i></td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Job storage</td>
+      <td class="text-center text-gray-500">Up to <span class="text-gray-900 font-semibold">1</span> GB</td>
+      <td class="text-center text-gray-500">Up to <span class="text-gray-900 font-semibold">100</span> GB</td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Manage system licenses</td>
+      <td class="text-center"><i class="pi pi-check text-green-500"></i></td>
+      <td class="text-center"><i class="pi pi-check text-green-500"></i></td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Real time monitoring</td>
+      <td class="text-center text-gray-500">Limited</td>
+      <td class="text-center text-gray-500"><span class="text-gray-900 font-semibold">Full</span></td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Included users</td>
+      <td class="text-center text-gray-500"><span class="text-gray-900 font-semibold">3</span> users</td>
+      <td class="text-center text-gray-500"><span class="text-gray-900 font-semibold">10</span> users</td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Job metrics</td>
+      <td class="text-center"><i class="pi pi-times text-gray-400"></i></td>
+      <td class="text-center"><i class="pi pi-check text-green-500"></i></td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Additional storage</td>
+      <td class="text-center"><i class="pi pi-times text-gray-400"></i></td>
+      <td class="text-center text-gray-500"><span class="text-gray-900 font-semibold">+$99/mo</span>  per additional 100GB</td>
+    </tr>
+    <tr>
+      <td class="p-4 font-medium">Additional users</td>
+      <td class="text-center"><i class="pi pi-times text-gray-400"></i></td>
+      <td class="text-center text-gray-500"><span class="text-gray-900 font-semibold">+$5/mo</span>  per additional user</td>
+    </tr>
+    <tr class="bg-gray-50">
+      <td></td>
+      <td class="text-center p-4">
+        <button class="p-button p-component w-full">
+          <span class="p-button-label">Get started</span>
+        </button>
+      </td>
+      <td class="text-center p-4">
+        <button class="p-button p-component w-full">
+          <span class="p-button-label">Buy Now</span>
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+

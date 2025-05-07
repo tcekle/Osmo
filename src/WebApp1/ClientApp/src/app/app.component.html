@@ -1,0 +1,43 @@
+<!--<p-toolbar styleClass="app-top-toolbar">-->
+<!--    <ng-template #start>-->
+<!--        <p-button icon="pi pi-bars" class="mr-2" text severity="secondary" />-->
+<!--        <p-button icon="pi pi-print" class="mr-2" text severity="secondary" />-->
+<!--        <p-button icon="pi pi-upload" text severity="secondary" />-->
+<!--    </ng-template>-->
+
+<!--    <ng-template #center>-->
+<!--        <p-iconfield iconPosition="left">-->
+<!--            <p-inputicon styleClass="pi pi-search" />-->
+<!--            <input type="text" pInputText placeholder="Search" />-->
+<!--        </p-iconfield>-->
+<!--    </ng-template>-->
+<!--</p-toolbar>-->
+
+<!--<router-outlet></router-outlet>-->
+
+<div class="app-layout">
+    <p-toolbar styleClass="app-top-toolbar">
+        <ng-template #start>
+            <p-button icon="pi pi-bars" class="mr-2" text severity="secondary" (click)="toggleMenu()" />
+            <p-button icon="pi pi-print" class="mr-2" text severity="secondary" />
+            <p-button icon="pi pi-upload" text severity="secondary" />
+        </ng-template>
+
+        <ng-template #center>
+            <p-iconfield iconPosition="left">
+                <p-inputicon styleClass="pi pi-search" />
+                <input type="text" pInputText placeholder="Search" />
+            </p-iconfield>
+        </ng-template>
+    </p-toolbar>
+
+    <div class="app-body">
+        <div [class.collapsed]="collapsed" class="app-side-menu">
+            <p-menu [model]="menuItems"></p-menu>
+        </div>
+
+        <div class="app-main-content">
+            <router-outlet></router-outlet>
+        </div>
+    </div>
+</div>

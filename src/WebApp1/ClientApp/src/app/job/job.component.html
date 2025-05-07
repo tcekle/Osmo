@@ -1,0 +1,179 @@
+<p-button
+  label="Back to jobs"
+  icon="pi pi-arrow-left"
+  size="small"
+  class="mb-4"
+  [link]="true"
+  [routerLink]="['/w/jobs']"
+></p-button>
+
+
+<div *ngIf="job" class="rounded-xl shadow-md">
+  <p-card class="surface-card max-w-4xl mx-auto mt-6">
+    <ng-template pTemplate="header">
+      <div class="text-3xl font-medium text-color mb-3 p-3">{{ job.jobById.jobName }}</div>
+    </ng-template>
+
+    <div class="text-muted-color mb-5">
+      Job details
+    </div>
+
+    <ul class="list-none p-0 m-0 border-t border-gray-300 divide-y divide-gray-200">
+      <!-- Name -->
+      <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-gray-50">
+        <div class="text-gray-500 sm:w-1/4 font-medium text-color-emphasis">Description</div>
+        <div class="text-gray-900 sm:w-3/4">{{ job.jobById.jobDescription }}</div>
+      </li>
+
+      <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2">
+        <div class="text-gray-500 sm:w-1/4 font-medium">Checksum</div>
+        <span class="text-gray-900 sm:w-3/4">{{ job.jobById.jobChecksum }}</span>
+      </li>
+
+      <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-gray-50">
+        <div class="text-gray-500 sm:w-1/4 font-medium">Settings checksum</div>
+        <div class="text-gray-900 sm:w-3/4">{{ job.jobById.settingChecksum }}</div>
+      </li>
+
+      <li class="flex flex-col sm:flex-row sm:items-center py-3 px-2 gap-2 bg-">
+        <div class="text-gray-500 sm:w-1/4 font-medium">Created date</div>
+        <div class="text-gray-900 sm:w-3/4">{{ job.jobById.createdAt }}</div>
+      </li>
+    </ul>
+  </p-card>
+</div>
+
+<div *ngIf="job" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+  <p-card class="shadow-md rounded-xl">
+    <ng-template pTemplate="content">
+      <div class="flex items-center space-x-4">
+        <i class="pi pi-chart-bar text-blue-500 text-5xl"></i>
+        <div>
+          <div class="text-3xl font-bold text-color-emphasis">
+            {{ job.jobStatistics.total_jobs }}
+          </div>
+          <div class="text-sm text-muted-color">
+            Total run count
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </p-card>
+
+  <!-- Total Success -->
+  <p-card class="shadow-md rounded-xl">
+    <ng-template pTemplate="content">
+      <div class="flex items-center space-x-4">
+        <i class="pi pi-check-circle text-green-500 text-5xl"></i>
+        <div>
+          <div class="text-3xl font-bold text-color-emphasis">
+            {{ job.jobStatistics.total_success }}
+          </div>
+          <div class="text-sm text-muted-color">Total successful runs</div>
+        </div>
+      </div>
+    </ng-template>
+  </p-card>
+
+  <!-- Total Failures -->
+  <p-card class="shadow-md rounded-xl">
+    <ng-template pTemplate="content">
+      <div class="flex items-center space-x-4">
+        <i class="pi pi-times-circle text-red-500 text-5xl"></i>
+        <div>
+          <div class="text-3xl font-bold text-color-emphasis">
+            {{ job.jobStatistics.total_failures }}
+          </div>
+          <div class="text-sm text-muted-color">Total failure runs</div>
+        </div>
+      </div>
+    </ng-template>
+  </p-card>
+
+  <!-- Success Rate -->
+  <p-card class="shadow-md rounded-xl">
+    <ng-template pTemplate="content">
+      <div class="flex items-center space-x-4">
+        <i class="pi pi-percentage text-yellow-500 text-5xl"></i>
+        <div>
+          <div class="text-3xl font-bold text-color-emphasis">
+            {{
+              job.jobStatistics.total_failures === 0
+                ? '100.00%'
+                : (job.jobStatistics.total_success * 100 / job.jobStatistics.total_jobs).toFixed(2) + '%'
+            }}
+          </div>
+          <div class="text-sm text-muted-color">Total success rate</div>
+        </div>
+      </div>
+    </ng-template>
+  </p-card>
+</div>
+
+<div class="mt-4">
+  <div class="card">
+    <p-select [options]="intervals"
+              (onChange)="timeIntervalSelectionChanged($event)"
+              optionLabel="name"
+              class="w-full md:w-56" />
+  </div>
+</div>
+
+<div *ngIf="job" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-1">
+  <div class="w-full sm:w-full rounded-xl shadow-md">
+    <p-card>
+      <ng-template pTemplate="content">
+        <h4 class="text-xl font-semibold mb-4 mt-4">Programming results</h4>
+
+        <div style="width: 300px; height: 300px; margin: 0 auto;">
+          <ng-container *ngIf="programmingChartData?.datasets?.[0]?.data?.length > 0; else noData">
+            <p-chart
+              #programmingResultsChart
+              type="pie"
+              [data]="programmingChartData"
+              [options]="programmingResultsChartOptions"
+              style="display: block; width: 100%; height: 100%;"
+            ></p-chart>
+          </ng-container>
+
+          <ng-template #noData>
+            <div class="text-center text-muted-color mt-12">
+              No data for the selected interval
+            </div>
+          </ng-template>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
+</div>
+
+<div *ngIf="job" class="mt-4">
+  <div class="w-full">
+    <div class="rounded-xl shadow-md p-4 bg-white">
+      <h4 class="text-xl font-semibold mt-4">Average Programming Time</h4>
+      <app-time-series-chart
+        class="my-2"
+        [startDate]="startDate"
+        [endDate]="endDate"
+        [trace]="programmingTimesTrace"
+        [chartTitle]="''"
+      ></app-time-series-chart>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="job" class="mt-4">
+  <div class="w-full">
+    <div class="rounded-xl shadow-md p-4 bg-white">
+      <h4 class="text-xl font-semibold mt-4">Advanced Event Viewer</h4>
+      <app-event-viewer-chart
+        [startDate]="startDate"
+        [endDate]="endDate"
+        [trace]="jobEventsTrace"
+        [chartTitle]="''"
+        ></app-event-viewer-chart>
+    </div>
+  </div>
+</div>
+
+

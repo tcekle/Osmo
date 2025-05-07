@@ -1,0 +1,20 @@
+<p-toolbar class="app-top-toolbar" styleClass="app-top-toolbar">
+  <ng-template #start>
+    <p-button icon="pi pi-bars" class="mr-2" text severity="secondary" />
+    <p-button icon="pi pi-print" class="mr-2" text severity="secondary" />
+    <p-button icon="pi pi-upload" text severity="secondary" />
+  </ng-template>
+
+  <ng-template #end>
+    <p-button icon="pi pi-moon"
+              class="mr-2"
+              [text]="true"
+              [outlined]="false"
+              [rounded]="true"
+              (onClick)="toggleDarkMode()"/>
+    <p-iconfield iconPosition="left">
+      <p-inputicon styleClass="pi pi-search" />
+      <input type="text" pInputText placeholder="Search" />
+    </p-iconfield>
+  </ng-template>
+</p-toolbar>

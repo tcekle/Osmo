@@ -1,0 +1,128 @@
+<div class="bg-muted py-3 px-6 shadow-2 flex items-center justify-between relative lg:static min-h-[80px]">
+  <img src="assets/images/blocks/logos/bastion-700.svg" alt="Logo" height="40" class="mr-0 lg:mr-6" />
+
+  <!-- Mobile menu toggle -->
+  <a
+    pRipple
+    pStyleClass="{ selector: '@next', enterClass: 'hidden', leaveToClass: 'hidden' }"
+    class="p-ripple block lg:hidden text-700 cursor-pointer"
+  >
+    <i class="pi pi-bars text-4xl"></i>
+  </a>
+
+  <!-- Main nav items -->
+  <div class="flex-grow hidden lg:flex absolute lg:static top-full left-0 w-full lg:w-auto z-10 surface-overlay lg:shadow-none shadow-2 justify-between">
+    <ul class="flex flex-col lg:flex-row list-none m-0 p-0 select-none">
+      <!-- Home -->
+      <li>
+        <a pRipple
+           class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors"
+           routerLink="/" >
+          <span>Home</span>
+        </a>
+      </li>
+
+      <li>
+        <a pRipple
+           class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors"
+           routerLink="/pricing" >
+          <span>Pricing</span>
+        </a>
+      </li>
+
+      <!-- Customers Dropdown -->
+      <li class="lg:relative">
+        <a
+          pRipple
+          pStyleClass="{ selector: '@next', enterClass: 'hidden', enterActiveClass: 'scalein', leaveToClass: 'hidden', leaveActiveClass: 'fadeout' }"
+          class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors"
+        >
+          <i class="pi pi-users mr-2"></i><span>Customers</span>
+          <i class="pi pi-angle-down ml-auto lg:ml-3"></i>
+        </a>
+
+        <!-- Dropdown content -->
+        <ul class="hidden lg:absolute bg-surface list-none m-0 border border-50 rounded shadow-2 w-full lg:w-60 p-3">
+          <li>
+            <a pRipple class="p-ripple flex items-center p-3 text-600 hover:text-900 hover:surface-100 transition-colors">
+              <i class="pi pi-user-plus mr-2"></i><span>Add New</span>
+            </a>
+          </li>
+          <li class="relative">
+            <a
+              pRipple
+              pStyleClass="{ selector: '@next', enterClass: 'hidden', enterActiveClass: 'scalein', leaveToClass: 'hidden', leaveActiveClass: 'fadeout' }"
+              class="p-ripple flex items-center p-3 text-600 hover:text-900 hover:surface-100 transition-colors"
+            >
+              <i class="pi pi-search mr-2"></i><span>Search</span>
+              <i class="pi pi-angle-down ml-auto lg:-rotate-90"></i>
+            </a>
+
+            <!-- Nested Dropdown -->
+            <ul class="hidden lg:absolute left-full top-0 bg-surface list-none border border-50 rounded shadow-2 w-full lg:w-60 p-3">
+              <li>
+                <a pRipple class="p-ripple flex items-center p-3 text-600 hover:text-900 hover:surface-100 transition-colors">
+                  <i class="pi pi-shopping-cart mr-2"></i><span>Purchases</span>
+                </a>
+              </li>
+              <li>
+                <a pRipple class="p-ripple flex items-center p-3 text-600 hover:text-900 hover:surface-100 transition-colors">
+                  <i class="pi pi-comments mr-2"></i><span>Messages</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+
+      <!-- Other Nav Items -->
+      <li>
+        <a pRipple class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors">
+          <i class="pi pi-calendar mr-2"></i><span>Calendar</span>
+        </a>
+      </li>
+      <li>
+        <a pRipple class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors">
+          <i class="pi pi-chart-line mr-2"></i><span>Stats</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Right Icons & Profile -->
+    <ul class="flex flex-col lg:flex-row list-none m-0 p-0 select-none border-t lg:border-t-0 border-surface-border">
+      <li>
+        <p-button
+          label="Log in"
+          icon="pi pi-sign-in"
+          size="small"
+          class="mb-4 "
+          severity="secondary"
+          [link]="true"
+          [routerLink]="['/w']"
+        ></p-button>
+
+<!--        <a pRipple class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors">-->
+<!--          <i class="pi pi-sign-in text-xl lg:text-2xl mr-2"></i>-->
+<!--          <span class="block">Log in</span>-->
+<!--        </a>-->
+      </li>
+      <li>
+        <a pRipple class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 text-600 hover:text-900 hover:surface-100 font-medium border-round cursor-pointer transition-colors">
+          <i class="pi pi-bell text-xl lg:text-2xl mr-2 lg:mr-0 p-overlay-badge">
+            <span class="p-badge p-badge-danger p-badge-dot"></span>
+          </i>
+          <span class="block lg:hidden">Notifications</span>
+        </a>
+      </li>
+      <li>
+        <a pRipple class="p-ripple flex items-center px-6 p-3 lg:px-3 lg:py-2 hover:surface-100 font-medium border-round cursor-pointer transition-colors">
+          <img src="assets/images/blocks/avatars/circle/avatar-f-1.png" class="mr-3 lg:mr-0 w-7 h-7 rounded-full" />
+          <div class="block lg:hidden">
+            <div class="text-900 font-medium">Josephine Lillard</div>
+            <span class="text-600 text-sm">Marketing Specialist</span>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

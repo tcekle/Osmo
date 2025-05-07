@@ -1,0 +1,55 @@
+<p-table #jobsTable
+         [value]="jobs"
+         [tableStyle]="{ 'min-width': '50rem' }"
+         [size]="'small'"
+         [paginator]="true"
+         [rowHover]="true"
+         [rows]="10"
+         [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
+         [totalRecords]="totalRecords"
+         [lazy]="true"
+         [loading]="loading"
+         (onLazyLoad)="loadJobsLazy($event)">
+  <ng-template #caption>
+    <div class="w-full mb-2">
+      <p-iconfield iconPosition="left" class="ml-auto">
+        <p-inputicon>
+          <i class="pi pi-search"></i>
+        </p-inputicon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search keyword"
+          class="w-full"
+          (input)="onSearch($event)"
+          [(ngModel)]="searchQuery"
+        />
+      </p-iconfield>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="header">
+    <tr>
+      <th id="name" class="whitespace-nowrap">Name</th>
+      <th id="description" class="whitespace-nowrap">Description</th>
+      <th id="job-checksum" class="whitespace-nowrap">Job Checksum</th>
+      <th id="setting-checksum" class="whitespace-nowrap">Setting Checksum</th>
+      <th id="created-at" class="whitespace-nowrap">Created At</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-job>
+    <tr (click)="onRowClick(job)" class="text-sm p-selectable-row">
+      <td class="py-1 px-2 whitespace-nowrap">{{ job.jobName }}</td>
+      <td class="py-1 px-2 whitespace-nowrap text-ellipsis overflow-hidden" style="max-width: 150px;">{{ job.jobDescription }}</td>
+      <td class="py-1 px-2 whitespace-nowrap">{{ job.jobChecksum }}</td>
+      <td class="py-1 px-2 whitespace-nowrap">{{ job.settingChecksum }}</td>
+      <td class="py-1 px-2 whitespace-nowrap">{{ job.createdAt }}</td>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="7">No jobs found.</td>
+    </tr>
+  </ng-template>
+</p-table>

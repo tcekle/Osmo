@@ -1,0 +1,22 @@
+﻿<!-- Sidebar -->
+<div
+  class="shadow-lg border-r h-full transition-all duration-300 ease-in-out flex flex-col"
+>
+  <div class="mt-10 flex flex-col gap-2">
+    <div
+      *ngFor="let navItem of sampleAppsSidebarNavs"
+      [pTooltip]="isSlimMenu ? navItem.title : ''"
+      class="px-4 py-1 flex items-center gap-2 cursor-pointer text-base rounded-lg transition-all select-none hover:bg-gray-100"
+      [ngClass]="{
+          'justify-center py-4': isSlimMenu,
+          'w-full': !isSlimMenu
+        }"
+      [routerLink]="navItem.routerLink"
+    >
+      <i [class]="navItem.icon"></i>
+      <span *ngIf="!isSlimMenu" class="font-medium leading-none">
+          {{ navItem.title }}
+      </span>
+    </div>
+  </div>
+</div>
